@@ -31,8 +31,11 @@ class Parser:
         if '//' in self.current_instruction:
             self.current_instruction = self.current_instruction.split('//')[0]
         self.next_instruction = self.file_stream.readline()
-        self.command, _, second = self.current_instruction.strip().partition(' ')
-        self.arg1, _, self.arg2 = second.partition(' ')
+        if self.current_instruction not in ('', '\n'):
+            self.command, _, second = self.current_instruction.strip().partition(' ')
+            self.arg1, _, self.arg2 = second.partition(' ')
+        else:
+            self.advance()
 
     def command_type(self) -> InstructionType:
         if self.command in ('add', 'sub', 'neg', 'eq', 'gt', 'lt', 'and', 'or', 'not'):
@@ -53,6 +56,8 @@ class Parser:
             return InstructionType.C_RETURN
         elif 'call' in self.command:
             return InstructionType.C_CALL
+        else:
+            raise RuntimeError(f"Unknown command '{self.command}'")
 
 
     def get_arg1(self) -> str:

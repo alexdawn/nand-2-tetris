@@ -143,14 +143,16 @@ class CodeWriter:
 
 
     def write_push_pop(self, command: InstructionType, segment: str, index: int) -> None:
-        if command.C_PUSH:
+        if command == command.C_PUSH:
             self.write_comment('push', segment, index)
-            self.put_seg(segment, index)
+            self.get_seg(segment, index)
             self.write_push('D')
-        elif command.C_POP:
+        elif command == command.C_POP:
             self.write_comment('pop', segment, index)
             self.write_pop('D')
-            self.get_seg(segment, index)
+            self.put_seg(segment, index)
+        else:
+            raise RuntimeError(f"Invalid Instruction {command}")
 
 
     def write_comment(self, command: str, segment: str, index: int) -> None:
@@ -170,8 +172,8 @@ class CodeWriter:
             reg = 'THAT' if index else 'THIS'
             self.put_constant(reg)
         elif segment == 'temp':
-            if index >= 0 and index < 8:
-                self.put_constant(f'R{5+index}')
+            if int(index) >= 0 and int(index) < 8:
+                self.put_constant(f'R{5+int(index)}')
             else:
                 raise RuntimeError(f"Invalid TEMP register temp {index}")
         elif segment == 'constant':
@@ -193,39 +195,50 @@ class CodeWriter:
             self.get_pointer_offset('THAT', index)
         elif segment == 'pointer':
             reg = 'THAT' if index else 'THIS'
-            self.get_constant(reg)
+            self.get_direct(reg)
         elif segment == 'temp':
-            if index >= 0 and index < 8:
-                self.get_constant(f'R{5+index}')
+            if int(index) >= 0 and int(index) < 8:
+                self.get_direct(f'R{5+int(index)}')
             else:
                 raise RuntimeError(f"Invalid TEMP register temp {index}")
         elif segment == 'constant':
             self.get_constant(index)
         elif segment == 'static':
-            self.get_constant(f'{self.file.name.split("/")[-1].split(".")[0]}.{index}')
+            self.get_direct(f'{self.file.name.split("/")[-1].split(".")[0]}.{index}')
         else:
             raise RuntimeError(f"Invalid arg1 '{segment}'")
 
 
     def put_constant(self, index: str) -> None:
+        """Used for both constant and temp segments, gives a way for the VM to directly write to specific hardware memory"""
+        self.write_to_file(f'''
+            @{index}
+            M=D
+        ''')
+
+
+    def get_direct(self, index: str) -> None:
+        """differs from get constant as it reads the contents of RAM[A]"""
+        self.write_to_file(f'''
+            @{index}
+            D=M
+        ''')
+
+
+    def get_constant(self, index: str) -> None:
+        """loads the constant value into D"""
         self.write_to_file(f'''
             @{index}
             D=A
         ''')
 
 
-    def get_constant(self, index: str) -> None:
-        self.write_to_file(f'''
-            @{index} // noop
-        ''')
-
-
     def put_pointer_offset(self, segment: str, index: int) -> None:
         """complex process using R13 and R14 for storage"""
-        self.write_to_file(f''''
+        self.write_to_file(f'''
             @R13 // value that has been popped off of stack
             M=D
-            @{reg}
+            @{segment}
             D=M
             @{index}
             D=D+A
@@ -241,7 +254,7 @@ class CodeWriter:
 
     def get_pointer_offset(self, segment: str, index: int) -> None:
         self.write_to_file(f'''
-            @{reg}
+            @{segment}
             D=M
             @{index}
             D=D+A
