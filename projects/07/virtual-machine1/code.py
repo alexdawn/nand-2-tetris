@@ -169,7 +169,7 @@ class CodeWriter:
         elif segment == 'that':
             self.put_pointer_offset('THAT', index)
         elif segment == 'pointer':
-            reg = 'THAT' if index else 'THIS'
+            reg = 'THAT' if int(index) == 1 else 'THIS'
             self.put_constant(reg)
         elif segment == 'temp':
             if int(index) >= 0 and int(index) < 8:
@@ -194,7 +194,7 @@ class CodeWriter:
         elif segment == 'that':
             self.get_pointer_offset('THAT', index)
         elif segment == 'pointer':
-            reg = 'THAT' if index else 'THIS'
+            reg = 'THAT' if int(index) == 1 else 'THIS'
             self.get_direct(reg)
         elif segment == 'temp':
             if int(index) >= 0 and int(index) < 8:
