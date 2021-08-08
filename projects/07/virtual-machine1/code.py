@@ -1,27 +1,55 @@
+import os
 from parser import InstructionType
+from io import FileIO
 
 class CodeWriter:
-    def __init__(self) -> None:
-        self.file = open('Prog.asm', 'w')
+    def __init__(self, file: FileIO) -> None:
+        filename = os.path.basename(file.name).replace('.vm', '')
+        self.file = open(f'{filename}.asm', 'w')
+        self.bootstrap()
         self.filename = self.file.name.split("/")[-1].split(".")[0]
         self.jump_index = 0
 
+    def write_to_file(self, text: str):
+        """Handles whitespace and blank lines"""
+        self.file.write(
+            '\n'.join(t.strip() 
+            for t in text.split('\n') 
+            if t.strip() != '')
+        )
+        self.file.write('\n')
+
+
+    def bootstrap(self) -> None:
+        self.write_to_file("""
+            // Bootstrap
+            @256
+            D=A
+            @SP
+            M=D
+            // TODO call Sys.init
+        """)
+
+
     def close(self) -> None:
-        self.write_true_subroutine()
+        """Suffix the asm code with an infinite loop trap"""
         self.write_infinite_loop()
+        self.write_true_subroutine()
         self.file.close()
+
 
     def write_infinite_loop(self):
         """Catches the end of a program to stop it doing any harm"""
-        self.file.write('''
+        self.write_to_file('''
             (INFINITE_LOOP)
             @INFINITE_LOOP
             0;JMP
         ''')
 
+
     def write_true_subroutine(self):
         """Routine which all comparison ops jump to, uses R13 to return to the right place"""
-        self.file.write('''
+        self.write_to_file('''
             (WRITETRUE)
             D=-1 // True
             @R13 // Jump back to where the sub was called
@@ -29,9 +57,10 @@ class CodeWriter:
             0;JMP
         ''')
 
+
     def compare_op(self, jump: str, jump_index: str):
         """Code to run a comparison op JEQ|JGT|JLT"""
-        self.file.write(f'''
+        self.write_to_file(f'''
             @SP
             A=M-1
             D=M-D
@@ -44,70 +73,74 @@ class CodeWriter:
             M=D // Write result of comparison op
         ''')
 
+
     def compare(self, jump: str):
         jump_label_name = f'{self.filename}.comp{self.jump_index}'
-        self.store_return_location(self.jump_index, jump_label_name)
+        self.store_return_location(jump_label_name)
         self.write_pop('D')
         self.compare_op(jump, jump_label_name)
         self.jump_index += 1    
 
+
     def store_return_location(self, jump_index: str) -> None:
         """Store the location of where to return to after a compare operation"""
-        self.file.write(f'''
+        self.write_to_file(f'''
                 @NEXT{jump_index}
                 D=A
                 @R13
                 M=D
             ''')
 
+
     def write_arithmetic(self, command: str) -> None:
         self.write_comment(command, '', '')
         if command == 'add':
             self.write_pop('D')
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=M+D
             ''')
         elif command == 'sub':
             self.write_pop('D')
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=M-D
             ''')
         elif command == 'neg':
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=-M
             ''')
         elif command == 'eq':
-            compare('JEQ')
+            self.compare('JEQ')
         elif command == 'gt':
-            compare('JGT')
+            self.compare('JGT')
         elif command == 'lt':
-            compare('GLT')
+            self.compare('JLT')
         elif command == 'and':
             self.write_pop('D')
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=M&D
             ''')
         elif command == 'or':
             self.write_pop('D')
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=M|D
             ''')
         elif command == 'not':
-            self.file.write('''
+            self.write_to_file('''
                 @SP
                 A=M-1
                 M=!M
             ''')
+
 
     def write_push_pop(self, command: InstructionType, segment: str, index: int) -> None:
         if command.C_PUSH:
@@ -119,8 +152,10 @@ class CodeWriter:
             self.write_pop('D')
             self.get_seg(segment, index)
 
+
     def write_comment(self, command: str, segment: str, index: int) -> None:
-        self.file.write(f'// {command} {segment} {index}')
+        self.write_to_file(f'// {command} {segment} {index}')
+
 
     def put_seg(self, segment: str, index: int) -> None:
         if segment == 'local':
@@ -146,6 +181,7 @@ class CodeWriter:
         else:
             raise RuntimeError(f"Invalid arg1 '{segment}'")
 
+
     def get_seg(self, segment: str, index: int) -> None:
         if segment == 'local':
             self.get_pointer_offset('LCL', index)
@@ -170,20 +206,23 @@ class CodeWriter:
         else:
             raise RuntimeError(f"Invalid arg1 '{segment}'")
 
+
     def put_constant(self, index: str) -> None:
-        self.file.write(f'''
+        self.write_to_file(f'''
             @{index}
             D=A
         ''')
 
+
     def get_constant(self, index: str) -> None:
-        self.file.write(f'''
+        self.write_to_file(f'''
             @{index} // noop
         ''')
 
+
     def put_pointer_offset(self, segment: str, index: int) -> None:
         """complex process using R13 and R14 for storage"""
-        self.file.write(f''''
+        self.write_to_file(f''''
             @R13 // value that has been popped off of stack
             M=D
             @{reg}
@@ -199,8 +238,9 @@ class CodeWriter:
             M=D
         ''')
 
+
     def get_pointer_offset(self, segment: str, index: int) -> None:
-        self.file.write(f'''
+        self.write_to_file(f'''
             @{reg}
             D=M
             @{index}
@@ -209,8 +249,9 @@ class CodeWriter:
             D=M
         ''')
 
+
     def write_push(self, reg: str) -> None:
-        self.file.write(f'''
+        self.write_to_file(f'''
             @SP
             A=M
             M={reg}
@@ -218,8 +259,9 @@ class CodeWriter:
             M=M+1
         ''')
 
+
     def write_pop(self, reg: str) -> None:
-        self.file.write(f'''
+        self.write_to_file(f'''
             @SP
             M=M-1
             A=M
