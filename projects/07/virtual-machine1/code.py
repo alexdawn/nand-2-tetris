@@ -4,11 +4,15 @@ from io import FileIO
 
 class CodeWriter:
     def __init__(self, file: FileIO) -> None:
-        filename = os.path.basename(file.name).replace('.vm', '')
-        self.file = open(f'{filename}.asm', 'w')
+        self.filename = os.path.basename(file.name).replace('.vm', '')
+        out_name ='prog' if os.path.isdir(file.name) else self.filename
+        self.file = open(f'{out_name}.asm', 'w')
         self.bootstrap()
         self.filename = self.file.name.split("/")[-1].split(".")[0]
         self.jump_index = 0
+
+    def set_file_name(self, filename: str) -> None:
+        self.filename = filename
 
     def write_to_file(self, text: str):
         """Handles whitespace and blank lines"""
@@ -280,3 +284,35 @@ class CodeWriter:
             A=M
             {reg}=M
         ''')
+
+
+    def write_label(self, label: str) -> None:
+        """label is [A-Za-z_.:][A-Za-z0-9_.:]*"""
+        self.write_comment('label', label, '')
+        self.write_to_file(f'''
+            ({label})
+        ''')
+
+    def write_goto(self, label: str) -> None:
+        self.write_comment('goto', label, '')
+        self.write_to_file(f'''
+            @{label}
+            0;JMP
+        ''')
+
+    def write_if(self, label: str) -> None:
+        self.write_comment('if', label, '')
+        self.write_pop('D')
+        self.write_to_file(f'''
+            @{label}
+            D;JNE
+        ''')
+
+    def write_function(self, name: str, number_variables: int) -> None:
+        pass
+
+    def write_call(self, name: str, number_arguments: int) -> None:
+        pass
+
+    def write_return(self) -> None:
+        pass

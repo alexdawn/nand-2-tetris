@@ -44,14 +44,14 @@ class Parser:
             return InstructionType.C_PUSH
         elif 'pop' in self.command:
             return InstructionType.C_POP
-        elif '(' in self.command:
+        elif 'label' in self.command:
             return InstructionType.C_LABEL
+        elif 'if-goto' in self.command:
+            return InstructionType.C_IF
         elif 'goto' in self.command:
             return InstructionType.C_GOTO
         elif 'def' in self.command:
             return InstructionType.C_FUNCTION
-        elif 'if' in self.command:
-            return InstructionType.C_IF
         elif 'return' in self.command:
             return InstructionType.C_RETURN
         elif 'call' in self.command:
