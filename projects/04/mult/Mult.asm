@@ -10,3 +10,27 @@
 // R0 >= 0, R1 >= 0, and R0*R1 < 32768.
 
 // Put your code here.
+    @R1
+    D=M
+    @R2
+    M=D
+    @R1
+    M=0
+(LOOP)
+    @R0
+    D=M
+// Add R0 to R1 (R1 times) until R2 is reduced to zero
+    @R1
+    M=D+M
+    @R2
+    M=M-1
+    D=M
+    @LOOP
+    D;JGT
+(END)
+    @R1
+    D=M
+    @R2
+    M=D
+    @END
+    0;JMP

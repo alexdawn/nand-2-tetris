@@ -1,0 +1,6 @@
+.vscode
+*.hack
+*.out
+projects/07/**/*.asm
+projects/08/**/*.asm
+*.pyc

@@ -10,5 +10,34 @@
 // When no key is pressed, the program clears the screen, i.e. writes
 // "white" in every pixel;
 // the screen should remain fully clear as long as no key is pressed.
-
-// Put your code here.
+(START)
+	@SCREEN
+	D=A-1
+	@R0
+	M=D
+(LOOP)
+	@R0
+	M=M+1
+	D=M
+	@KBD
+	D=D-A
+	@START
+	D;JGE
+	@KBD
+	D=M
+	@WRITEWHITE
+	D;JEQ
+(WRITEBLACK)
+	@R0
+	D=M
+	A=D
+	M=-1
+	@LOOP
+	0;JMP
+(WRITEWHITE)
+	@R0
+	D=M
+	A=D
+	M=0
+	@LOOP
+	0;JMP
