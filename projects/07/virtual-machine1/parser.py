@@ -19,15 +19,20 @@ class Parser:
         self.current_instruction = None
         self.file_stream = file_stream
         self.next_instruction = self.file_stream.readline()
+        self.line_number = 0
         self.command = None
         self.arg1 = None
         self.arg2 = None
+
+    def get_debug_info(self) -> str:
+        return f'{self.file_stream.name.split("/")[-1]}:{self.line_number}'
 
     def has_more_lines(self) -> bool:
         return self.next_instruction != ''
 
     def advance(self) -> None:
         self.current_instruction = self.next_instruction
+        self.line_number += 1
         if '//' in self.current_instruction:
             self.current_instruction = self.current_instruction.split('//')[0]
         self.next_instruction = self.file_stream.readline()
@@ -50,7 +55,7 @@ class Parser:
             return InstructionType.C_IF
         elif 'goto' in self.command:
             return InstructionType.C_GOTO
-        elif 'def' in self.command:
+        elif 'function' in self.command:
             return InstructionType.C_FUNCTION
         elif 'return' in self.command:
             return InstructionType.C_RETURN
