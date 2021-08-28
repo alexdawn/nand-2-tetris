@@ -17,6 +17,8 @@ class Parser:
 
     def advance(self) -> None:
         self.current_instruction = self.next_instruction
+        if '//' in self.current_instruction:
+            self.current_instruction = self.current_instruction.split('//')[0]
         self.next_instruction = self.file_stream.readline()
 
     def instruction_type(self) -> InstructionType:
