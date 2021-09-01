@@ -1,8 +1,21 @@
-* check the function label naming is correct?
 * option flag for if dir should have file called after the dir or Prog.asm
-* option flag for more bootloader options
 * order of files to be read?
+
+* allow flags to be grouped `-bisl`
+* help flag/subcommand
+* add assembler macros
+* makefile to generate and test?
+* python/C emulator?
+* python complier
+* jack compiler
+* tetris
 * 
+
+
+## Fibonacci Element
+
+This one was tricky, needed to get recursive calls working.
+
 * get Fibo working (stack keeps growning after the answer is got)
 * after you get RAM[261]=3
 * the stack keeps growing
@@ -22,18 +35,42 @@ function fibonacci(n) {
     }
 }
 ```
-0 1 2 3 4 5 6
-1 1 2 3 5 8 13
 
-call stack:
+expected function returns:
 
-call fibonacci 4
-    call fibonacci 2
-        return 2
-    call fibonacci 3
-        call fibonacci 1
+```
+0 1 2 3 4
+0 1 1 2 3
+```
+
+should have 9 calls to fibo
+with max level 5 depth
+
+(level 1)
+call fibonacci 4 
+    (level 2)
+    call fibonacci 2 
+        (level 3)
+        call fibonacci 0 
+            (level 4)
+            return 0
+        call fibonacci 1 
+            (level 4)
             return 1
-        call fibonacci 2
-            return 2
-        return 3
-    return 5
+        return 1
+    call fibonacci 3 
+        (level 3)<-- RAM[268]=3
+        call fibonacci 1 
+            (level 4)
+            return 1
+        call fibonacci 2 
+            (level 4)
+            call fibonacci 0 
+                (level 5)
+                return 0
+            call fibonacci 1 
+                (level 5)
+                return 1
+            return 1
+        return 2
+    return 3 <-- RAM[261]=3
