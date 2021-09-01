@@ -378,7 +378,7 @@ class CodeWriter:
 
     def write_goto(self, label: str, debug_text: str) -> None:
         """Jump to label"""
-        self.write_comment('goto', label, '', debug_text)
+        self.write_comment('if-goto', label, '', debug_text)
         self._write_to_file(f'''
             @{self.parent_function_name}${label}
             0;JMP
