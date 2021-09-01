@@ -420,9 +420,9 @@ class CodeWriter:
             ARG = SP - (5 + nArgs)
             LCL = SP
         """
-        self.write_comment('call', name, number_arguments, debug_text)
         function_label = f'{name}'
-        return_label = f'{function_label}$ret.{self.call_index}'
+        self.write_comment('call', function_label, number_arguments, debug_text)
+        return_label = f'{self.parent_function_name}$ret.{self.call_index}'
         self.call_index += 1
         self._write_to_file(f'''
             @{return_label}  // push return address
@@ -484,7 +484,7 @@ class CodeWriter:
             LCL = *(frame-4)
             goto retAddr
         """
-        self.write_comment('return', '', '', debug_text)
+        self.write_comment(f'return from {self.parent_function_name}', '', '', debug_text)
         self._write_to_file('''
             @LCL  // frame (stored in R15) = LCL
             D=M
