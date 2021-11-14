@@ -1,8 +1,6 @@
 import re
 from io import FileIO
 
-# todo handle multi-line comments
-NON_TOKENS = ('\n', ' ', '\t')
 
 class JackTokenizer:
     def __init__(self, input_file: FileIO) -> None:
@@ -14,6 +12,7 @@ class JackTokenizer:
         self.next_token = self._get_next_token()
 
     def _peek_char(self) -> str:
+        """get the next char in file, then rewind"""
         char = self.file.read(1)
         self.file.seek(self.file.tell() - 1)
         return char
