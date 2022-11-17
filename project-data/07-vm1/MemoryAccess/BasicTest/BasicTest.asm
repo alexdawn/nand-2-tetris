@@ -1,10 +1,4 @@
-// Bootstrap
-@256
-D=A
-@SP
-M=D
-// TODO call Sys.init
-// push constant 10
+// BasicTest.vm:7    push constant 10
 @10
 D=A
 @SP
@@ -12,25 +6,25 @@ A=M
 M=D
 @SP
 M=M+1
-// pop local 0
+// BasicTest.vm:8    pop local 0
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @LCL
 D=M
 @0
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// push constant 21
+// BasicTest.vm:9    push constant 21
 @21
 D=A
 @SP
@@ -38,7 +32,7 @@ A=M
 M=D
 @SP
 M=M+1
-// push constant 22
+// BasicTest.vm:10    push constant 22
 @22
 D=A
 @SP
@@ -46,43 +40,43 @@ A=M
 M=D
 @SP
 M=M+1
-// pop argument 2
+// BasicTest.vm:11    pop argument 2
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @ARG
 D=M
 @2
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// pop argument 1
+// BasicTest.vm:12    pop argument 1
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @ARG
 D=M
 @1
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// push constant 36
+// BasicTest.vm:13    push constant 36
 @36
 D=A
 @SP
@@ -90,25 +84,25 @@ A=M
 M=D
 @SP
 M=M+1
-// pop this 6
+// BasicTest.vm:14    pop this 6
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @THIS
 D=M
 @6
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// push constant 42
+// BasicTest.vm:15    push constant 42
 @42
 D=A
 @SP
@@ -116,7 +110,7 @@ A=M
 M=D
 @SP
 M=M+1
-// push constant 45
+// BasicTest.vm:16    push constant 45
 @45
 D=A
 @SP
@@ -124,43 +118,43 @@ A=M
 M=D
 @SP
 M=M+1
-// pop that 5
+// BasicTest.vm:17    pop that 5
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @THAT
 D=M
 @5
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// pop that 2
+// BasicTest.vm:18    pop that 2
 @SP
 M=M-1
 A=M
 D=M
-@R13 // value that has been popped off of stack
+@R13 // temp store R13 = D
 M=D
 @THAT
 D=M
 @2
 D=D+A
-@R14  // pointer to dest
+@R14  // pointer to dest R14 = seg + i
 M=D
 @R13
 D=M
 @R14
 A=M
 M=D
-// push constant 510
+// BasicTest.vm:19    push constant 510
 @510
 D=A
 @SP
@@ -168,14 +162,14 @@ A=M
 M=D
 @SP
 M=M+1
-// pop temp 6
+// BasicTest.vm:20    pop temp 6
 @SP
 M=M-1
 A=M
 D=M
 @R11
 M=D
-// push local 0
+// BasicTest.vm:21    push local 0
 @LCL
 D=M
 @0
@@ -187,7 +181,7 @@ A=M
 M=D
 @SP
 M=M+1
-// push that 5
+// BasicTest.vm:22    push that 5
 @THAT
 D=M
 @5
@@ -199,7 +193,7 @@ A=M
 M=D
 @SP
 M=M+1
-// add
+// BasicTest.vm:23    add
 @SP
 M=M-1
 A=M
@@ -207,7 +201,7 @@ D=M
 @SP
 A=M-1
 M=M+D
-// push argument 1
+// BasicTest.vm:24    push argument 1
 @ARG
 D=M
 @1
@@ -219,7 +213,7 @@ A=M
 M=D
 @SP
 M=M+1
-// sub
+// BasicTest.vm:25    sub
 @SP
 M=M-1
 A=M
@@ -227,7 +221,7 @@ D=M
 @SP
 A=M-1
 M=M-D
-// push this 6
+// BasicTest.vm:26    push this 6
 @THIS
 D=M
 @6
@@ -239,7 +233,7 @@ A=M
 M=D
 @SP
 M=M+1
-// push this 6
+// BasicTest.vm:27    push this 6
 @THIS
 D=M
 @6
@@ -251,7 +245,7 @@ A=M
 M=D
 @SP
 M=M+1
-// add
+// BasicTest.vm:28    add
 @SP
 M=M-1
 A=M
@@ -259,7 +253,7 @@ D=M
 @SP
 A=M-1
 M=M+D
-// sub
+// BasicTest.vm:29    sub
 @SP
 M=M-1
 A=M
@@ -267,7 +261,7 @@ D=M
 @SP
 A=M-1
 M=M-D
-// push temp 6
+// BasicTest.vm:30    push temp 6
 @R11
 D=M
 @SP
@@ -275,7 +269,7 @@ A=M
 M=D
 @SP
 M=M+1
-// add
+// BasicTest.vm:31    add
 @SP
 M=M-1
 A=M

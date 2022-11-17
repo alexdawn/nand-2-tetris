@@ -1,73 +1,3 @@
-// Bootstrap
-@256
-D=A
-@SP
-M=D
-@101 // set the other pointers to illegal negative values
-D=-A
-@LCL
-M=D
-@102
-D=-A
-@ARG
-M=D
-@103
-D=-A
-@THIS
-M=D
-@104
-D=-A
-@THAT
-M=D
-// Inserted bootstrap code    call Sys.init 0
-@Sys.init$ret.0  // push return address
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@LCL  // push LCL
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@ARG  // push ARG
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS  // push THIS
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT  // push THAT
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP  // ARG = SP - (5 + nArgs)
-D=M
-@5
-D=D-A
-@ARG
-M=D
-@SP  // LCL = SP
-D=M
-@LCL
-M=D
-@Sys.init // goto Sys.init
-0;JMP
-(Sys.init$ret.0)
 // Sys.vm:8    function Sys.init 0
 (Sys.init)
 // Sys.vm:9    push constant 4000
@@ -101,7 +31,7 @@ D=M
 @THAT
 M=D
 // Sys.vm:13    call Sys.main 0
-@Sys.main$ret.0  // push return address
+@Sys.init$ret.0  // push return address
 D=A
 @SP
 A=M
@@ -148,7 +78,7 @@ D=M
 M=D
 @Sys.main // goto Sys.main
 0;JMP
-(Sys.main$ret.0)
+(Sys.init$ret.0)
 // Sys.vm:14    pop temp 1
 @SP
 M=M-1
@@ -158,7 +88,7 @@ D=M
 M=D
 // Sys.vm:15    label LOOP
 (Sys.init$LOOP)
-// Sys.vm:16    goto LOOP
+// Sys.vm:16    if-goto LOOP
 @Sys.init$LOOP
 0;JMP
 // Sys.vm:26    function Sys.main 5
@@ -307,7 +237,7 @@ M=D
 @SP
 M=M+1
 // Sys.vm:38    call Sys.add12 1
-@Sys.add12$ret.0  // push return address
+@Sys.main$ret.0  // push return address
 D=A
 @SP
 A=M
@@ -354,7 +284,7 @@ D=M
 M=D
 @Sys.add12 // goto Sys.add12
 0;JMP
-(Sys.add12$ret.0)
+(Sys.main$ret.0)
 // Sys.vm:39    pop temp 0
 @SP
 M=M-1
@@ -454,7 +384,7 @@ D=M
 @SP
 A=M-1
 M=M+D
-// Sys.vm:49    return
+// Sys.vm:49    return from Sys.main
 @LCL  // frame (stored in R15) = LCL
 D=M
 @R15
@@ -562,7 +492,7 @@ D=M
 @SP
 A=M-1
 M=M+D
-// Sys.vm:63    return
+// Sys.vm:63    return from Sys.add12
 @LCL  // frame (stored in R15) = LCL
 D=M
 @R15

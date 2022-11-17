@@ -1,10 +1,4 @@
-// Bootstrap
-@256
-D=A
-@SP
-M=D
-// TODO call Sys.init
-// push constant 7
+// SimpleAdd.vm:7    push constant 7
 @7
 D=A
 @SP
@@ -12,7 +6,7 @@ A=M
 M=D
 @SP
 M=M+1
-// push constant 8
+// SimpleAdd.vm:8    push constant 8
 @8
 D=A
 @SP
@@ -20,7 +14,7 @@ A=M
 M=D
 @SP
 M=M+1
-// add
+// SimpleAdd.vm:9    add
 @SP
 M=M-1
 A=M

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Hack Emulator</title>
+        <style>
+            .editor {
+                display: inline-flex;
+                gap: 10px;
+                font-family: monospace;
+                line-height: 21px;
+                background: #282a3a;
+                border-radius: 2px;
+                padding: 20px 10px;    
+            }
+            
+            textarea {
+                line-height: 21px;
+                overflow-y: hidden;
+                padding: 0;
+                border: 0;
+                background: #282a3a;
+                color: #fff;
+                min-width: 500px;
+                outline: none;
+                resize: none;
+            }
+
+            .line-numbers {
+                width: 20px;
+                text-align: right;
+            }
+
+            .line-numbers span {
+                counter-increment: linenumber;
+            }
+
+            .line-numbers span::before {
+                content: counter(linenumber);
+                display: block;
+                color: #506882;
+            }
+        </style>
+    </head>
+    <body>
+        <script src="helloworld.js"></script>
+        <script>
+        var steps;
+        var step;
+        var get_ram;
+        var get_rom;
+        var get_screen;
+        var keyboard_to_ram;
+        var ram;
+        var rom;
+        var screen;
+        var timer;
+        var clocksTicks = 10_000;
+        var triggerInterval = 100; // ms
+        var lastTime = 0;
+        var time = performance.now();
+
+        Module.onRuntimeInitialized = async () => {
+            steps = Module.cwrap("steps", null, ["number"]);
+            step = Module.cwrap("step", "number", null);
+            get_ram = Module.cwrap("get_ram", "number", null);
+            get_rom = Module.cwrap("get_rom", "number", null);
+            get_screen = Module.cwrap("get_screen", "number", null);
+            keyboard_to_ram = Module.cwrap("keyboard_to_ram", null, ["number"]);
+
+            ram = new Int16Array(Module.HEAP16.buffer, get_ram(), 32768);
+            rom = new Uint16Array(Module.HEAP16.buffer, get_rom(), 65536);
+            screen = new Uint8ClampedArray(Module.HEAP8, get_screen(), 512 * 256 * 4);
+
+            const inputElement = document.getElementById("myFile");
+            inputElement.addEventListener("change", uploadRom, false);
+        }
+
+        function pressStep() {
+            step();
+        }
+
+        function pressSteps() {
+            steps(clocksTicks);
+            document.querySelector('.time').innerText = (clocksTicks / ((time - lastTime) / 1000)) + ' hz';
+            lastTime = time;
+            time = performance.now();
+            
+            // const canvas = document.getElementById("canvas");
+            // const ctx = canvas.getContext("2d");
+            // ctx.fillStyle = "green";
+            // ctx.fillRect(0, 0, 512, 256);
+            // const img = new ImageData(screen, 512, 256);
+            // ctx.drawImage(img, 512, 256);
+        }
+
+        function pressPlay() {
+            timer = setInterval(pressSteps, triggerInterval);
+        }
+
+        function pressStop() {
+            clearInterval(timer); 
+        }
+
+        function uploadRom() {
+            const inputElement = document.getElementById("myFile");
+            const file = inputElement.files[0];
+            const reader = new FileReader();
+            reader.readAsText(file);
+            reader.addEventListener("load", () => {
+                const content = document.querySelector('.rom');
+                content.innerText = reader.result;
+                const prog = reader.result.split('\n');
+                const progBytes = prog.map(line => {
+                    return parseInt(line.split('//')[0].trim(), 2);
+                });
+                rom.set(progBytes, 0);
+            }, false);
+        }
+        document.addEventListener('keydown', function(event) {
+            console.log(event.keyCode);
+            keyboard_to_ram(event.keyCode);
+        });
+
+        document.querySelector('.rom').addEventListener('keyup', event => {
+            const numberOfLines = event.target.value.split('\\n').length;
+            document.querySelector('.line-numbers').innerHTML = Array(numberOfLines)
+                .fill('<span></span>')
+                .join('');
+        });
+        </script>
+        <p class="time"></p>
+        <input type="file" id="myFile">
+        <h1>Program</h1>
+        <div class="editor">
+            <div class="line-numbers">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <textarea class="rom"></textarea>
+        </div>
+        <h1>Ram</h1>
+        <p class="ram"></p>
+        <canvas id="canvas" width="512" height="256"></canvas>
+        <button onclick="pressStep()">></button>
+        <button onclick="pressSteps()">>></button>
+        <button onclick="pressPlay()">>>></button>
+        <button onclick="pressStop()">[]</button>
+        
+    </body>
+</html>

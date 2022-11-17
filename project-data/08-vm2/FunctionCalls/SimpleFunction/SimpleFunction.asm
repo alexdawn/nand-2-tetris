@@ -88,19 +88,24 @@ D=M
 @SP
 A=M-1
 M=M-D
-// SimpleFunction.vm:16    return
+// SimpleFunction.vm:16    return from SimpleFunction.test
 @LCL  // frame (stored in R15) = LCL
 D=M
 @R15
+M=D
+@5
+A=D-A  // *(frame-5)
+D=M
+@R14
 M=D
 @SP
 M=M-1
 A=M
 D=M
-@ARG
+@ARG  // *arg = pop()
 A=M
-M=D // *arg = pop()
-@ARG // SP = ARG + 1
+M=D
+@ARG  // SP = ARG + 1
 D=M+1
 @SP
 M=D
@@ -110,26 +115,25 @@ A=M
 D=M
 @THAT
 M=D
-@R15 // THIS = *(frame-2)
+@R15  // THIS = *(frame-2)
 M=M-1
 A=M
 D=M
 @THIS
 M=D
-@R15 // ARG = *(frame-3)
+@R15  // ARG = *(frame-3)
 M=M-1
 A=M
 D=M
 @ARG
 M=D
-@R15 // LCL = *(frame-4)
+@R15  // LCL = *(frame-4)
 M=M-1
 A=M
 D=M
 @LCL
 M=D
-@R15 // goto retaddr = *(frame-5)
-M=M-1
+@R14  // get retAddr from R14
 A=M
 0;JMP
 (INFINITE_LOOP)

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <title>Hack Emulator</title>
+        <link rel="stylesheet" href="style.css"/>
+    </head>
+    <body>
+        <div>
+            <button onclick="pressStep()">></button>
+            <button onclick="pressSteps()">>></button>
+            <button onclick="pressPlay()">>>></button>
+            <button onclick="pressStop()">[]</button>
+            <button onclick="pressReset()">X</button>
+        </div>
+        <div>
+            <canvas id="canvas" width="512" height="256"></canvas>
+        </div>
+        <p class="pc"></p><p class="time"></p>
+        <input type="file" id="myFile">
+        <h1>Program</h1>
+        <div class="editor">
+            <div class="line-numbers">
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <textarea class="rom"></textarea>
+        </div>
+        <h1>Ram</h1>
+        <p class="ram"></p>
+        <script src="helloworld.js" defer></script>
+        <script src="custom.js" defer></script>
+    </body>
+</html>

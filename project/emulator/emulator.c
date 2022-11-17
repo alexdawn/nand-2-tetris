@@ -6,13 +6,38 @@ signed short a;
 signed short d;
 signed short ram[32768];
 unsigned short rom[65536];
-char screen[131072]; // PIL takes 1 bytes per screen bit in 1 mode, this pads each ram bit to one byte
+//char screen[131072]; // PIL takes 1 bytes per screen bit in 1 mode, this pads each ram bit to one byte
+unsigned char screen[4 * 131072]; // JS takes 4 bytes per pixel
+
+
+unsigned short get_pc() {
+    return pc;
+}
+
+void reset() {
+    pc = 0;
+    for (int i=0; i < 32768; i++) {
+        ram[i] = 0;
+    }
+}
 
 void keyboard_to_ram(signed short keycode) {
     ram[24576] = keycode;
 }
 
-char* ram_to_screen(void) {
+unsigned char* ram_to_screen(void) {
+    return &screen[0];
+}
+
+signed short* get_ram() {
+    return &ram[0];
+}
+
+unsigned short* get_rom() {
+    return &rom[0];
+}
+
+unsigned char* get_screen() {
     return &screen[0];
 }
 
@@ -88,17 +113,39 @@ void jump(short condition) {
         pc++;
 }
 
+void update_pil_screen(short a, short value) {
+    int i = a - 16384;
+    for (int j=0; j < 16; j++) {
+        if (value & (0x1 << j)) {
+            screen[i * 16 + j] = 0xff;
+        } else {
+            screen[i * 16 + j] = 0x00;
+        }
+    }
+}
+
+void update_js_screen(short a, short value) {
+    int i = a - 16384;
+    for (int j=0; j < 16; j++) {
+        if (value & (0x1 << j)) {
+            screen[(i * 16 + j) * 4] = 0xff;  // R
+            screen[(i * 16 + j) * 4 + 1] = 0xff;  // G
+            screen[(i * 16 + j) * 4 + 2] = 0xff;  // B
+            screen[(i * 16 + j) * 4 + 3] = 0xff;  // A
+        } else {
+            screen[(i * 16 + j) * 4] = 0x00;  // R
+            screen[(i * 16 + j) * 4 + 1] = 0x00;  // G
+            screen[(i * 16 + j) * 4 + 2] = 0x00; // B
+            screen[(i * 16 + j) * 4 + 3] = 0xff;  // A
+        }
+    }
+}
+
 void set_memory(signed short value) {
     ram[a] = value;
     if (a >= 16384 && a < 24576) {
-        int i = a - 16384;
-        for (int j=0; j < 16; j++) {
-            if (value & (0x1 << j)) {
-                screen[i * 16 + j] = 0xff;
-            } else {
-                screen[i * 16 + j] = 0x00;
-            }
-        }
+        // update_pil_screen(a, value);
+        update_js_screen(a, value);
     }
 }
 
@@ -141,19 +188,8 @@ int step() {
     return 1;
 }
 
-int foo() {
-    printf("hello");
-    return 1;
-}
-
 void steps(int count) {
-    printf("C: steps\n");
-    int i;
-    printf("after init\n");
-    for (i = 0; i < count; i++) {
-        printf("C: step %i\n", i);
+    for (int i = 0; i < count; i++) {
         step();
-        printf("after step\n");
     }
-    printf("end loop\n");
 }

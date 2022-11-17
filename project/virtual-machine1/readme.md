@@ -12,8 +12,8 @@ the jvsm has 16 virtual registers, which are:
 
 ```
 R0   - SP       stack pointer.
-R1   - ARG      pointer to `arg 0` a function will have n initalised args on the stack.
-R2   - LCL      pointer to `local 0` a function will have n initalised locals on the stack.
+R1   - ARG      pointer to `arg 0` a function will have n initialised args on the stack.
+R2   - LCL      pointer to `local 0` a function will have n initialised locals on the stack.
 R3   - THIS     pointer to `pointer 0` the current class.
 R4   - THAT     pointer to `pointer 1` the pointer to the calling class?
 R5   - TEMP0

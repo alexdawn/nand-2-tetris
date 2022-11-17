@@ -1,73 +1,3 @@
-// Bootstrap
-@256
-D=A
-@SP
-M=D
-@101 // set the other pointers to illegal negative values
-D=-A
-@LCL
-M=D
-@102
-D=-A
-@ARG
-M=D
-@103
-D=-A
-@THIS
-M=D
-@104
-D=-A
-@THAT
-M=D
-// Inserted bootstrap code    call Sys.init 0
-@Sys.init$ret.0  // push return address
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@LCL  // push LCL
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@ARG  // push ARG
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THIS  // push THIS
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@THAT  // push THAT
-D=M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-@SP  // ARG = SP - (5 + nArgs)
-D=M
-@5
-D=D-A
-@ARG
-M=D
-@SP  // LCL = SP
-D=M
-@LCL
-M=D
-@Sys.init // goto Sys.init
-0;JMP
-(Sys.init$ret.0)
 // FibonacciSeries.vm:11    push argument 1
 @ARG
 D=M
@@ -206,7 +136,7 @@ A=M
 D=M
 @$COMPUTE_ELEMENT
 D;JNE
-// FibonacciSeries.vm:28    goto END_PROGRAM
+// FibonacciSeries.vm:28    if-goto END_PROGRAM
 @$END_PROGRAM
 0;JMP
 // FibonacciSeries.vm:30    label COMPUTE_ELEMENT
@@ -338,7 +268,7 @@ D=M
 @R14
 A=M
 M=D
-// FibonacciSeries.vm:47    goto MAIN_LOOP_START
+// FibonacciSeries.vm:47    if-goto MAIN_LOOP_START
 @$MAIN_LOOP_START
 0;JMP
 // FibonacciSeries.vm:49    label END_PROGRAM

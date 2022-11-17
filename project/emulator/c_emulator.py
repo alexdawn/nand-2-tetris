@@ -7,9 +7,132 @@ import ctypes
 import sys
 import pathlib
 
+# TODO to get this dir so can run the script from any folder
+# tkiner to hack char codes
 key = {
-    114: 132,
-    113: 130
+    "space": 32,
+    "exclam": 33,
+    "quotedbl": 34,
+    "numbersign": 35,
+    "dollar": 36,
+    "percent": 37,
+    "ampersand": 38,
+    "quoteright": 39,
+    "parenleft": 40,
+    "parenright": 41,
+    "asterisk": 42,
+    "plus": 43,
+    "comma": 44,
+    "minus": 45,
+    "period": 46,
+    "slash": 47,
+    "0": 48,
+    "1": 49,
+    "2": 50,
+    "3": 51,
+    "4": 52,
+    "5": 53,
+    "6": 54,
+    "7": 55,
+    "8": 56,
+    "9": 57,
+    "colon": 58,
+    "semicolon": 59,
+    "less": 60,
+    "equal": 61,
+    "greater": 62,
+    "question": 63,
+    "at": 64,
+    "A": 65,
+    "B": 66,
+    "C": 67,
+    "D": 68,
+    "E": 69,
+    "F": 70,
+    "G": 71,
+    "H": 72,
+    "I": 73,
+    "J": 74,
+    "K": 75,
+    "L": 76,
+    "M": 77,
+    "N": 78,
+    "O": 79,
+    "P": 80,
+    "Q": 81,
+    "R": 82,
+    "S": 83,
+    "T": 84,
+    "U": 85,
+    "V": 86,
+    "W": 87,
+    "X": 88,
+    "Y": 89,
+    "Z": 90,
+    "bracketleft": 91,
+    "backslash": 92,
+    "bracketright": 93,
+    "asciicircum": 94,
+    "underscore": 95,
+    "quoteleft": 96,
+    "a": 97,
+    "b": 98,
+    "c": 99,
+    "d": 100,
+    "e": 101,
+    "f": 102,
+    "g": 103,
+    "h": 104,
+    "i": 105,
+    "j": 106,
+    "k": 107,
+    "l": 108,
+    "m": 109,
+    "n": 110,
+    "o": 111,
+    "p": 112,
+    "q": 113,
+    "r": 114,
+    "s": 115,
+    "t": 116,
+    "u": 117,
+    "v": 118,
+    "w": 119,
+    "x": 120,
+    "y": 121,
+    "z": 122,
+    "braceleft": 123,
+    "bar": 124,
+    "braceright": 125,
+    "asciitilde": 126,
+    "Delete": 127,
+    "Return": 128,
+    "BackSpace": 129,
+    "Left": 130,
+    "Up": 131,
+    "Right": 132,
+    "Down": 133,
+    # missing keys my keyboard is missing
+    "home": 134,
+    "end": 135,
+    "pageup": 136,
+    "pagedown": 137,
+    "insert": 138,
+    "delete": 139,
+    #
+    "Escape": 140,
+    "F1": 141,
+    "F2": 142,
+    "F3": 143,
+    "F4": 144,
+    "F5": 145,
+    "F6": 146,
+    "F7": 147,
+    "F8": 148,
+    "F9": 149,
+    "F10": 150,
+    "F11": 151,
+    "F12": 152
 }
 
 
@@ -29,6 +152,7 @@ class CHack:
         self.ram = (ctypes.c_ushort * 32768).in_dll(self.hack, "ram")
         self.np_ram = np.ctypeslib.as_array(self.ram)
         self.rom = (ctypes.c_short * 65536).in_dll(self.hack, "rom")
+        self.debug_rom = []
         self.replace_rom(rom)
         self.message = message
         self.canvas = canvas
@@ -42,14 +166,19 @@ class CHack:
 
     def replace_rom(self, filename: str):
         with open(filename) as file:
-            data = [int(word.split('//')[0], 2) for word in file.readlines()]
+            data = [word.split('//') for word in file.readlines()]
+        self.debug_rom = []
         for i, d in enumerate(data):
-            self.rom[i] = d
+            self.rom[i] = int(d[0], 2)
+            if len(d) > 1:
+                self.debug_rom.append(d[1])
 
     def key_handler(self, event):
         # TODO fix xset r off requirement
-        self.keyboard = ctypes.c_short(key.get(event.keycode, event.keycode))
-        self.hack.keyboard_to_ram(self.keyboard)
+        hack_char_code = key.get(event.keysym)
+        if hack_char_code:
+            self.keyboard = ctypes.c_short(hack_char_code)
+            self.hack.keyboard_to_ram(self.keyboard)
 
     def key_release(self, _):
         self.keyboard = ctypes.c_short(0)
@@ -60,8 +189,9 @@ class CHack:
         self.current_time = time.time()
         delta = self.current_time - self.last_time
         freq = '{0:.2e}'.format(ops / float(delta))
+        assembly = self.debug_rom[self.pc.value] if len(self.debug_rom) else ''
         self.message.config(
-            text=f'speed: {freq}Hz PC: {self.pc.value:>4x} A: {self.a.value:>4x} D: {self.d.value:>4x} key: {self.keyboard.value:>4}')
+            text=f'speed: {freq}Hz PC: {self.pc.value:>4x} {assembly}\nA: {self.a.value:>4x} D: {self.d.value:>4x} key: {self.keyboard.value:>4}')
 
     def reset(self):
         for i, d in enumerate(self.ram):

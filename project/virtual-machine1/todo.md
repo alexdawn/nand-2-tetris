@@ -4,8 +4,7 @@
 * allow flags to be grouped `-bisl`
 * help flag/subcommand
 * add assembler macros
-* makefile to generate and test?
-* python/C emulator?
+* use invoke to generate and test?
 * python complier
 * jack compiler
 * tetris
@@ -16,7 +15,7 @@
 
 This one was tricky, needed to get recursive calls working.
 
-* get Fibo working (stack keeps growning after the answer is got)
+* get Fibo working (stack keeps growing after the answer is got)
 * after you get RAM[261]=3
 * the stack keeps growing
 * breakpoint start and end of function:
