@@ -8,8 +8,8 @@ var ram;
 var rom;
 var screen;
 var timer;
-var clocksTicks = 10_000;
-var triggerInterval = 100; // ms
+var clocksTicks = 100_000;
+var triggerInterval = 10; // ms
 var lastTime = 0;
 var time = performance.now();
 
@@ -44,6 +44,7 @@ function pressStep() {
 }
 
 function pressSteps() {
+    clocksTicks = Number(document.getElementById("ticks").value);
     steps(clocksTicks);
     refresh();
 }
@@ -184,7 +185,7 @@ function convertKeyToHack(code) {
         "}": 125,
         "~": 126,
         "Delete": 127,
-        "Return": 128,
+        "Enter": 128,
         "Backspace": 129,
         "ArrowLeft": 130,
         "ArrowUp": 131,
@@ -214,9 +215,14 @@ function convertKeyToHack(code) {
 }
 
 document.addEventListener('keydown', function(event) {
-    // console.log(event);
+    if (convertKeyToHack(event.key) === null) {
+        console.log(event);
+    }
+
     keyboard_to_ram(convertKeyToHack(event.key));
-    event.preventDefault();
+    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+    }
 });
 
 document.addEventListener('keyup', function(event) {
@@ -225,11 +231,13 @@ document.addEventListener('keyup', function(event) {
         console.log("release");
         keyboard_to_ram(0);
     }
-    event.preventDefault();
+    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+    }
 });
 
 document.querySelector('.rom').addEventListener('keyup', event => {
-    const numberOfLines = event.target.value.split('\\n').length;
+    const numberOfLines = event.target.value.split('\n').length;
     document.querySelector('.line-numbers').innerHTML = Array(numberOfLines)
         .fill('<span></span>')
         .join('');
