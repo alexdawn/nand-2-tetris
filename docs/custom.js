@@ -8,6 +8,8 @@ var ram;
 var rom;
 var screen;
 var timer;
+var isPlaying = false;
+var ticks = 0;
 var clocksTicks = 100_000;
 var triggerInterval = 10; // ms
 var lastTime = 0;
@@ -34,41 +36,80 @@ Module.onRuntimeInitialized = async () => {
     screen = new Uint8ClampedArray(Module.HEAP8.buffer, get_screen(), 512 * 256 * 4);
     screen.set(new Array(512 * 256).fill([0,0,0,255]).flat(), 0);
 
+    setRom(loadServerRom('/bin/Pong.hack'));
     const inputElement = document.getElementById("myFile");
     inputElement.addEventListener("change", uploadRom, false);
 }
 
 function pressStep() {
     step();
+    ticks++;
     refresh();
 }
 
 function pressSteps() {
     clocksTicks = Number(document.getElementById("ticks").value);
     steps(clocksTicks);
+    ticks += clocksTicks;
     refresh();
 }
 
 function refresh() {
-    document.querySelector('.time').innerText = (clocksTicks / ((time - lastTime) / 1_000) / 1_000_000) + ' Mhz';
+    document.querySelector('.time').innerText = (clocksTicks / ((time - lastTime) / 1_000) / 1_000_000)
+        .toFixed(2) + ' Mhz';
     document.querySelector('.pc').innerText =  'PC: ' + get_pc();
+    document.querySelector('.ticks').innerText =  'ticks: ' + ticks;
     lastTime = time;
     time = performance.now();
     const img = new ImageData(screen, 512, 256);
     ctx.putImageData(img, 0, 0, 0, 0, 512, 256);
 }
 
+function pressPlayPause() {
+    isPlaying ? pressStop() : pressPlay();
+}
+
 function pressPlay() {
+    document.getElementById("play").setAttribute("class", "fa fa-pause");
+    document.getElementById("play").innerText = "Pause";
     timer = setInterval(pressSteps, triggerInterval);
+    isPlaying = true;
 }
 
 function pressStop() {
+    document.getElementById("play").setAttribute("class", "fa fa-play");
+    document.getElementById("play").innerText = "Play";
     clearInterval(timer); 
+    isPlaying = false;
 }
 
 function pressReset() {
+    ticks = 0;
     reset();
     refresh();
+}
+
+function pressResize() {
+
+}
+
+function loadServerRom(filePath) {
+    var result = null;
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.open("GET", filePath, false);
+    xmlhttp.send();
+    if (xmlhttp.status==200) {
+        result = xmlhttp.responseText;
+    }
+    return result;
+}
+
+function setRom(program) {
+    const prog = program.split('\n');
+    const progBytes = prog.map(line => {
+        return parseInt(line.split('//')[0].trim(), 2);
+    });
+    rom.set(progBytes, 0);
 }
 
 function uploadRom() {
@@ -79,13 +120,38 @@ function uploadRom() {
     reader.addEventListener("load", () => {
         const content = document.querySelector('.rom');
         content.innerText = reader.result;
-        const prog = reader.result.split('\n');
-        const progBytes = prog.map(line => {
-            return parseInt(line.split('//')[0].trim(), 2);
-        });
-        rom.set(progBytes, 0);
+        setRom(reader.result);
     }, false);
 }
+
+document.addEventListener('keydown', function(event) {
+    if (convertKeyToHack(event.key) === null) {
+        console.log(event);
+    }
+
+    keyboard_to_ram(convertKeyToHack(event.key));
+    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+    }
+});
+
+document.addEventListener('keyup', function(event) {
+    // console.log(event);
+    if (convertKeyToHack(event.key) === ram[24576]) {
+        console.log("release");
+        keyboard_to_ram(0);
+    }
+    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
+        event.preventDefault();
+    }
+});
+
+document.querySelector('.rom').addEventListener('keyup', event => {
+    const numberOfLines = event.target.value.split('\n').length;
+    document.querySelector('.line-numbers').innerHTML = Array(numberOfLines)
+        .fill('<span></span>')
+        .join('');
+});
 
 function convertKeyToHack(code) {
     key = {
@@ -213,32 +279,3 @@ function convertKeyToHack(code) {
     }
     return key[code];
 }
-
-document.addEventListener('keydown', function(event) {
-    if (convertKeyToHack(event.key) === null) {
-        console.log(event);
-    }
-
-    keyboard_to_ram(convertKeyToHack(event.key));
-    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
-        event.preventDefault();
-    }
-});
-
-document.addEventListener('keyup', function(event) {
-    // console.log(event);
-    if (convertKeyToHack(event.key) === ram[24576]) {
-        console.log("release");
-        keyboard_to_ram(0);
-    }
-    if (event.target.tagName !== 'TEXTAREA' && event.target.tagName !== 'INPUT') {
-        event.preventDefault();
-    }
-});
-
-document.querySelector('.rom').addEventListener('keyup', event => {
-    const numberOfLines = event.target.value.split('\n').length;
-    document.querySelector('.line-numbers').innerHTML = Array(numberOfLines)
-        .fill('<span></span>')
-        .join('');
-});

@@ -1,0 +1,413 @@
+function Donut.new 0
+push constant 17
+call Memory.alloc 1
+pop pointer 0
+push constant 8
+pop this 2
+push constant 16
+pop this 3
+push constant 216
+pop this 4
+push constant 48
+pop this 5
+push constant 24
+pop this 6
+push constant 56
+pop this 7
+push constant 256
+pop this 0
+push constant 128
+pop this 1
+push constant 5
+pop this 16
+call Trig.size 0
+pop this 14
+call Trig.scale 0
+pop this 15
+call Trig.cos 0
+pop this 13
+call Trig.sin 0
+pop this 12
+push this 6
+push this 12
+add
+pop pointer 1
+push that 0
+pop this 8
+push this 6
+push this 13
+add
+pop pointer 1
+push that 0
+pop this 9
+push this 7
+push this 12
+add
+pop pointer 1
+push that 0
+pop this 10
+push this 7
+push this 13
+add
+pop pointer 1
+push that 0
+pop this 11
+push pointer 0
+return
+function Donut.rotateX 0
+push argument 0
+pop pointer 0
+push this 6
+push argument 1
+add
+call Trig.clamp 1
+pop this 6
+push this 6
+push this 12
+add
+pop pointer 1
+push that 0
+pop this 8
+push this 6
+push this 13
+add
+pop pointer 1
+push that 0
+pop this 9
+push constant 0
+return
+function Donut.rotateY 0
+push argument 0
+pop pointer 0
+push this 7
+push argument 1
+add
+call Trig.clamp 1
+pop this 7
+push this 7
+push this 12
+add
+pop pointer 1
+push that 0
+pop this 10
+push this 7
+push this 13
+add
+pop pointer 1
+push that 0
+pop this 11
+push constant 0
+return
+function Donut.draw 17
+push argument 0
+pop pointer 0
+call Screen.clearScreen 0
+pop temp 0
+push constant 0
+pop local 5
+label WHILE_EXP0
+push local 5
+push this 14
+lt
+not
+if-goto WHILE_END0
+push constant 0
+pop local 6
+label WHILE_EXP1
+push local 6
+push this 14
+lt
+not
+if-goto WHILE_END1
+push local 5
+push this 12
+add
+pop pointer 1
+push that 0
+pop local 10
+push local 5
+push this 13
+add
+pop pointer 1
+push that 0
+pop local 11
+push local 6
+push this 12
+add
+pop pointer 1
+push that 0
+pop local 12
+push local 6
+push this 13
+add
+pop pointer 1
+push that 0
+pop local 13
+push this 3
+push this 2
+push local 11
+call Math.multiply 2
+push this 15
+call Math.divide 2
+add
+pop local 8
+push this 2
+push local 10
+call Math.multiply 2
+push this 15
+call Math.divide 2
+pop local 9
+push this 8
+push local 12
+call Math.multiply 2
+push this 15
+call Math.divide 2
+pop local 14
+push local 9
+push this 9
+call Math.multiply 2
+push this 15
+call Math.divide 2
+pop local 15
+push local 8
+push this 9
+call Math.multiply 2
+push this 15
+call Math.divide 2
+pop local 16
+push local 8
+push this 11
+push local 13
+call Math.multiply 2
+push local 14
+push this 10
+call Math.multiply 2
+add
+call Math.multiply 2
+push this 15
+call Math.divide 2
+push local 15
+push this 10
+call Math.multiply 2
+sub
+push this 15
+call Math.divide 2
+pop local 0
+push local 8
+push this 10
+push local 13
+call Math.multiply 2
+push local 14
+push this 11
+call Math.multiply 2
+sub
+call Math.multiply 2
+push this 15
+call Math.divide 2
+push local 15
+push this 11
+call Math.multiply 2
+add
+push this 15
+call Math.divide 2
+pop local 1
+push this 5
+push local 16
+push local 12
+call Math.multiply 2
+push local 9
+push this 8
+call Math.multiply 2
+add
+push this 15
+call Math.divide 2
+add
+pop local 2
+push local 2
+push constant 0
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push this 0
+push this 4
+push local 0
+call Math.multiply 2
+push local 2
+call Math.divide 2
+add
+pop local 3
+push this 1
+push this 4
+push local 1
+call Math.multiply 2
+push local 2
+call Math.divide 2
+sub
+pop local 4
+push this 16
+push local 13
+push local 11
+call Math.multiply 2
+push this 10
+call Math.multiply 2
+push this 15
+call Math.divide 2
+push this 9
+push local 11
+call Math.multiply 2
+push local 12
+call Math.multiply 2
+push this 15
+call Math.divide 2
+sub
+push this 8
+push local 10
+call Math.multiply 2
+sub
+push this 11
+push this 9
+push local 10
+call Math.multiply 2
+push local 11
+push local 14
+call Math.multiply 2
+sub
+call Math.multiply 2
+push this 15
+call Math.divide 2
+add
+call Math.multiply 2
+push this 15
+call Math.divide 2
+push this 15
+call Math.divide 2
+pop local 7
+push local 3
+push local 4
+push local 7
+call Donut.drawPoint 3
+pop temp 0
+label IF_FALSE0
+push local 6
+push constant 1
+add
+pop local 6
+goto WHILE_EXP1
+label WHILE_END1
+push local 5
+push constant 2
+add
+pop local 5
+goto WHILE_EXP0
+label WHILE_END0
+push constant 0
+return
+function Donut.drawPoint 0
+push argument 2
+push constant 2
+neg
+gt
+if-goto IF_TRUE0
+goto IF_FALSE0
+label IF_TRUE0
+push argument 0
+push argument 1
+call Screen.drawPixel 2
+pop temp 0
+label IF_FALSE0
+push argument 2
+push constant 1
+neg
+gt
+if-goto IF_TRUE1
+goto IF_FALSE1
+label IF_TRUE1
+push argument 0
+push constant 1
+sub
+push argument 1
+call Screen.drawPixel 2
+pop temp 0
+push argument 0
+push constant 1
+add
+push argument 1
+call Screen.drawPixel 2
+pop temp 0
+label IF_FALSE1
+push argument 2
+push constant 2
+gt
+if-goto IF_TRUE2
+goto IF_FALSE2
+label IF_TRUE2
+push argument 0
+push argument 1
+push constant 1
+add
+call Screen.drawPixel 2
+pop temp 0
+push argument 0
+push argument 1
+push constant 1
+sub
+call Screen.drawPixel 2
+pop temp 0
+label IF_FALSE2
+push argument 2
+push constant 3
+gt
+if-goto IF_TRUE3
+goto IF_FALSE3
+label IF_TRUE3
+push argument 0
+push constant 1
+sub
+push argument 1
+push constant 1
+sub
+call Screen.drawPixel 2
+pop temp 0
+push argument 0
+push constant 1
+add
+push argument 1
+push constant 1
+add
+call Screen.drawPixel 2
+pop temp 0
+label IF_FALSE3
+push argument 2
+push constant 5
+gt
+if-goto IF_TRUE4
+goto IF_FALSE4
+label IF_TRUE4
+push argument 0
+push constant 1
+sub
+push argument 1
+push constant 1
+add
+call Screen.drawPixel 2
+pop temp 0
+push argument 0
+push constant 1
+add
+push argument 1
+push constant 1
+sub
+call Screen.drawPixel 2
+pop temp 0
+label IF_FALSE4
+push constant 0
+return
+function Donut.dispose 0
+push argument 0
+pop pointer 0
+push pointer 0
+call Memory.deAlloc 1
+pop temp 0
+push constant 0
+return

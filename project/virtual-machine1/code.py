@@ -1,6 +1,5 @@
 import os
 from parser import InstructionType
-from io import FileIO
 from typing import Dict, Any
 
 """
@@ -47,7 +46,7 @@ class CodeWriter:
     def _write_to_file(self, text: str):
         """Handles whitespace and blank lines"""
         lines = [
-            t.strip() for t in text.split('\n') 
+            t.strip() for t in text.split('\n')
             if t.strip() != ''
         ]
         for l in lines:
@@ -379,8 +378,8 @@ class CodeWriter:
             D;JNE
         ''')
 
-    def write_function(self, name: str, number_variables: int, debug_text: str)\
-        -> None:
+    def write_function(self, name: str, number_variables: int, debug_text: str) \
+            -> None:
         """Initialised function with n local values"""
         self.write_comment('function', name, number_variables, debug_text)
         function_name = f'{name}'
@@ -394,8 +393,8 @@ class CodeWriter:
         self.parent_function_name = function_name
         self.call_index = 0
 
-    def write_call(self, name: str, number_arguments: int, debug_text: str)\
-        -> None:
+    def write_call(self, name: str, number_arguments: int, debug_text: str) \
+            -> None:
         """
             Pushes information of the caller to the stack:
             -6 <args n> <-- ARG (first arg)

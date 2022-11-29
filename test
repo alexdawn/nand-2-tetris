@@ -1,0 +1,111 @@
+#!/bin/bash
+
+set -euo pipefail
+
+echo "test"
+echo ""
+
+echo "run fill"
+./tools/CPUEmulator.sh ./project-data/04-machine-language/fill/FillAutomatic.tst > /dev/null 2>&1
+
+# echo "test mult"
+# ./tools/CPUEmulator.sh ./project-data/04-machine-language/mult/Mult.tst
+
+echo "assemble add"
+./tools/Assembler.sh ./project-data/06-assembler/add/Add.asm > /dev/null 2>&1
+mv .hack ./project-data/06-assembler/add/javaAdd.hack
+python project/assembler/assembler.py \
+    ./project-data/06-assembler/add/Add.asm \
+    -o ./project-data/06-assembler/add/Add.hack  > /dev/null 2>&1
+git diff --no-index ./project-data/06-assembler/add/Add.hack ./project-data/06-assembler/add/javaAdd.hack > /dev/null 2>&1
+./tools/CPUEmulator.sh ./project-data/06-assembler/add/Add.tst > /dev/null 2>&1
+
+echo "assemble max"
+./tools/Assembler.sh ./project-data/06-assembler/max/Max.asm > /dev/null 2>&1
+mv .hack ./project-data/06-assembler/max/javaMax.hack
+python project/assembler/assembler.py \
+    ./project-data/06-assembler/max/Max.asm \
+    -o ./project-data/06-assembler/max/Max.hack > /dev/null 2>&1
+git diff --no-index ./project-data/06-assembler/max/Max.hack ./project-data/06-assembler/max/javaMax.hack > /dev/null 2>&1
+
+echo "assemble pong"
+./tools/Assembler.sh ./project-data/06-assembler/pong/Pong.asm > /dev/null 2>&1
+mv .hack ./project-data/06-assembler/pong/javaPong.hack
+python project/assembler/assembler.py \
+    ./project-data/06-assembler/pong/Pong.asm \
+    -o ./project-data/06-assembler/pong/Pong.hack  > /dev/null 2>&1
+git diff --no-index ./project-data/06-assembler/pong/Pong.hack ./project-data/06-assembler/pong/javaPong.hack > /dev/null 2>&1
+
+echo "assemble rect"
+./tools/Assembler.sh ./project-data/06-assembler/rect/Rect.asm > /dev/null 2>&1
+mv .hack ./project-data/06-assembler/rect/javaRect.hack
+python project/assembler/assembler.py \
+    ./project-data/06-assembler/rect/Rect.asm \
+    -o ./project-data/06-assembler/rect/Rect.hack  > /dev/null 2>&1
+git diff --no-index ./project-data/06-assembler/rect/Rect.hack ./project-data/06-assembler/rect/javaRect.hack > /dev/null 2>&1
+
+echo ""
+
+# VM part 1
+
+echo "test vm1/basicTest"
+python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.vm > /dev/null 2>&1
+mv ./BasicTest.asm ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.asm
+./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm1/PointerTest"
+python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.vm > /dev/null 2>&1
+mv ./PointerTest.asm ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.asm
+./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm1/StaticTest"
+python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.vm > /dev/null 2>&1
+mv ./StaticTest.asm ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.asm
+./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm1/SimpleAdd"
+python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.vm > /dev/null 2>&1
+mv ./SimpleAdd.asm ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.asm
+./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm1/StackTest"
+python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.vm > /dev/null 2>&1
+mv ./StackTest.asm ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.asm
+./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+
+echo ""
+
+# VM part 2
+
+echo "test vm2/NestedCall"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/NestedCall > /dev/null 2>&1
+mv ./NestedCall.asm ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm2/SimpleFunction"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/SimpleFunction > /dev/null 2>&1
+mv ./SimpleFunction.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm2/StaticsTest"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/StaticsTest > /dev/null 2>&1
+mv ./StaticsTest.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/StaticsTest.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/StaticsTest/StaticsTest.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm2/BasicLoop"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/BasicLoop > /dev/null 2>&1
+mv ./BasicLoop.asm ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm2/FibonacciSeries"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/FibonacciSeries > /dev/null 2>&1
+mv ./FibonacciSeries.asm ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+echo "test vm2/FibonacciElement"
+python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/FibonacciElement > /dev/null 2>&1
+mv ./FibonacciElement.asm ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.asm
+./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.tst > /dev/null 2>&1 && echo "success" || echo "fail"
+
+

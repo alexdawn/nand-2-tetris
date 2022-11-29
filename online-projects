@@ -1,0 +1,81 @@
+#!/bin/bash
+
+set -euo pipefail
+
+# dino uses too much code
+# python ./project/virtual-machine1/vm-code-writer.py -b -i \
+#     ./online/dino/DinoAdventure/vm_code
+# python ./project/assembler/assembler.py \
+#     ./vm_code.asm \
+#     -v --symbol -o ./dino.hack
+
+# donut uses too much code
+# mkdir -p ./tmp
+
+# ./tools/JackCompiler.sh ./online/from-nand-to-donut
+# cp ./tools/OS/*.vm ./tmp
+# cp ./online/from-nand-to-donut/*.vm ./tmp
+
+# python ./project/virtual-machine1/vm-code-writer.py -b -i \
+#     ./tmp
+
+# python ./project/assembler/assembler.py \
+#     ./tmp.asm \
+#     -v --symbol -o ./donut.hack
+
+
+# rm ./tmp/*.vm
+# mkdir -p ./tmp
+
+# ./tools/JackCompiler.sh .online/from-nand-to-raytracer/jack-raytracer
+# cp ./tools/OS/*.vm ./tmp
+# cp ./online/from-nand-to-donut/*.vm ./tmp
+
+# python ./project/virtual-machine1/vm-code-writer.py -b -i \
+#     ./tmp
+
+# python ./project/assembler/assembler.py \
+#     ./tmp.asm \
+#     -v --symbol -o ./raytracer.hack
+
+# rm ./tmp/*.vm
+# mkdir -p ./tmp
+
+# ./tools/JackCompiler.sh ./online/hackenstein3D/dist
+# cp ./tools/OS/*.vm ./tmp
+# cp ./online/from-nand-to-donut/*.vm ./tmp
+
+# python ./project/virtual-machine1/vm-code-writer.py -b -i \
+#     ./tmp
+
+# python ./project/assembler/assembler.py \
+#     ./tmp.asm \
+#     -v --symbol -o ./hackenstein3D.hack
+
+# rm ./tmp/*.vm
+# mkdir -p ./tmp
+
+# ./tools/JackCompiler.sh .online/SpaceInvaders
+# cp ./tools/OS/*.vm ./tmp
+# cp ./online/from-nand-to-donut/*.vm ./tmp
+
+# python ./project/virtual-machine1/vm-code-writer.py -b -i \
+#     ./tmp
+
+# python ./project/assembler/assembler.py \
+#     ./tmp.asm \
+#     -v --symbol -o ./SpaceInvaders.hack
+
+rm ./tmp/*.vm
+mkdir -p ./tmp
+
+./tools/JackCompiler.sh ./online/Nand2Tetris-Games_and_Demos/GASscroller
+cp ./tools/OS/*.vm ./tmp
+cp ./online/from-nand-to-donut/*.vm ./tmp
+
+python ./project/virtual-machine1/vm-code-writer.py -b -i \
+    ./tmp
+
+python ./project/assembler/assembler.py \
+    ./tmp.asm \
+    -v --symbol -o ./GASscroller.hack
