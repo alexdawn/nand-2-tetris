@@ -1,0 +1,9 @@
+{
+    "name": "Pong",
+    "author": "DChristianson",
+    "source": "https://www.nand2tetris.org/",
+    "description": "The Pong game program was originally written in the high-level Jack language. The Jack code was then translated by the Jack compiler into VM code. The VM code was then translated by the VM translator into the Hack assembly code shown here.",
+    "boot": 5000000,
+    "end": 27177,
+    "_comment": "boot is how many ticks run run asap, end is for the final PC value"
+}
