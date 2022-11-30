@@ -8,6 +8,10 @@
     padding: 20px 10px;    
 }
 
+canvas {
+    outline: white 3px solid;
+}
+
 * {
   color: #b6b6b6
 }
