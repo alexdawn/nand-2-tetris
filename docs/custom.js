@@ -36,7 +36,8 @@ Module.onRuntimeInitialized = async () => {
     screen = new Uint8ClampedArray(Module.HEAP8.buffer, get_screen(), 512 * 256 * 4);
     screen.set(new Array(512 * 256).fill([0,0,0,255]).flat(), 0);
 
-    setRom(loadServerRom('/bin/Pong.hack'));
+    const baseUrl = location.pathname.substring(0, location.pathname.lastIndexOf("/") + 1)
+    setRom(loadServerRom(location.origin + baseUrl + 'bin/Pong.hack'));
     const inputElement = document.getElementById("myFile");
     inputElement.addEventListener("change", uploadRom, false);
 }
