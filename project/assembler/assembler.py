@@ -1,5 +1,4 @@
 from typing import Dict
-import logging
 
 import click
 
@@ -13,7 +12,7 @@ def hardcoded_symbols() -> Dict[str, int]:
     return {
         **{
             f'R{x}': x for x in range(16)
-        }, 
+        },
         **{
             'SP': 0,
             'LCL': 1,
@@ -79,19 +78,25 @@ def second_pass(asm_file: str, symbol_table: Dict[str, int], options) -> None:
                 p.advance()
                 if p.current_instruction[0:2] != '//':
                     inst = p.instruction_type()
-                    debug = f' // {p.current_instruction}'.replace("\n", "") if options['verbose'] else ''
+                    if options['verbose']:
+                        debug = f' // {p.current_instruction}'.replace("\n", "")
+                    else:
+                        debug = ''
                     if inst == InstructionType.A_INSTRUCTION:
                         if is_symbol(p.symbol()):
                             if p.symbol() in symbol_table.keys():
                                 out(f'0{symbol_table[p.symbol()]:015b}{debug}\n')
                             else:  # new definition, append to RAM space
-                                logging.warning(f"unknown def {p.symbol()}")
+                                # logging.warning(f"unknown def {p.symbol()}")
                                 out(f'0{next_ram_space:015b}{debug}\n')
                                 symbol_table[p.symbol()] = next_ram_space
                                 next_ram_space += 1
                         else:
                             out(f'0{int(p.symbol()):015b}{debug}\n')
                     elif inst == InstructionType.C_INSTRUCTION:
+                        if p.jump() and (
+                                (p.dest() and 'M' in p.dest()) or (p.comp() and 'M' in p.comp())):
+                            raise RuntimeError("Cannot have both a jump and use the M register")
                         out(f'111{comp(p.comp())}{dest(p.dest())}{jump(p.jump())}{debug}\n')
     if options['symbol']:
         print(symbol_table)
