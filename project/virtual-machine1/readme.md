@@ -28,6 +28,7 @@ R13  - R13      used during logical comparison to store the return address for P
                 also used temporary store for indirect pops (including function returns).
 R14  - R14      used to store the destination address of an indirect pop. also used to store the retAddr
 R15  - R15      stores the a copy of LCL used to point to the saved frame of the caller.
+                also used in subroutines to return
 ```
 
 `RAM[16]-RAM[255]` A static heap with 240 words/registers for globals.

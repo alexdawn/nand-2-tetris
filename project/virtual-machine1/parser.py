@@ -64,12 +64,10 @@ class Parser:
         else:
             raise RuntimeError(f"Unknown command '{self.command}'")
 
-
     def get_arg1(self) -> str:
         if self.arg1:
             return self.arg1
         return self.command
-
 
     def get_arg2(self) -> str:
         return self.arg2

@@ -1,6 +1,5 @@
 import os
 from parser import InstructionType
-from io import FileIO
 from typing import Dict, Any
 
 """
@@ -10,8 +9,12 @@ See readme for more details
 
 R13 - used during logical comparison to store the return address for PC
 R13 - also used temporary store for indirect pops (including function returns)
-R14 - used to store the destination address of an indirect pop
-R15 - stores the a copy of LCL used to point to the saved frame of the caller
+R14 - used to store the destination address during an indirect pop
+R15 - used to store return addresses from subroutine
+        subroutines are common blocks of VM assembley to reduce the size
+        of the the program, unlike functions there is no other context
+R15 - is also used by the return function code, that stores a copy of LCL and
+        then decrements over the rest of the stack to revert the context to the callers state
 """
 
 
@@ -37,8 +40,7 @@ class CodeWriter:
         self.line_number = 0
         self.is_listing_file = options.get('is_listing_file', False)
 
-        if any(o for o in options.values()):
-            self._bootstrap(options)
+        self._bootstrap(options)
 
     def set_file_name(self, filename: str) -> None:
         """Extract the filename from path and extension"""
@@ -47,23 +49,24 @@ class CodeWriter:
     def _write_to_file(self, text: str):
         """Handles whitespace and blank lines"""
         lines = [
-            t.strip() for t in text.split('\n') 
+            t.strip() for t in text.split('\n')
             if t.strip() != ''
         ]
-        for l in lines:
-            if l.split('//')[0].strip() != '' and not ('(' in l.split('//')[0] and ')' in l.split('//')[0]):
+        for line in lines:
+            if (line.split('//')[0].strip() != '' and
+                    not ('(' in line.split('//')[0] and ')' in line.split('//')[0])):
                 line_prefix = f'{self.line_number}: '
                 self.line_number += 1
             else:
                 line_prefix = ''
             if self.is_listing_file:  # have option to print line numbers
-                self.file.write(f'{line_prefix}{l}\n')
+                self.file.write(f'{line_prefix}{line}\n')
             else:
-                self.file.write(f'{l}\n')
+                self.file.write(f'{line}\n')
 
     def _bootstrap(self, options: Dict[str, Any]) -> None:
         """Initialises the stack, sets function pointers to illegal values"""
-        if options['bootstrap']:
+        if options.get('bootstrap'):
             self._write_to_file("""
                 // Bootstrap
                 @256
@@ -71,7 +74,7 @@ class CodeWriter:
                 @SP
                 M=D
             """)
-        if options['init_illegal']:
+        if options.get('init_illegal'):
             self._write_to_file("""
                 @101 // set the other pointers to illegal negative values
                 D=-A
@@ -90,13 +93,112 @@ class CodeWriter:
                 @THAT
                 M=D
             """)
-        if options['system_call']:
+        if options.get('system_call'):
             self.write_call("Sys.init", 0, 'Inserted bootstrap code')
+
+    def _common_function_call_code(self):
+        """Common code for calling a function
+            This subroutine assumes the function return address is in D
+            and that the bespoke calling code is in R15, which this subroutine
+            returns to at the end.
+        """
+        self._write_to_file('''
+            (CALL_FUNCTION) // assumes return address already in D reg
+        ''')
+        self.write_push('D')
+        self._write_to_file('''
+            @LCL  // push LCL
+            D=M
+        ''')
+        self.write_push('D')
+        self._write_to_file('''
+            @ARG  // push ARG
+            D=M
+        ''')
+        self.write_push('D')
+        self._write_to_file('''
+            @THIS  // push THIS
+            D=M
+        ''')
+        self.write_push('D')
+        self._write_to_file('''
+            @THAT  // push THAT
+            D=M
+        ''')
+        self.write_push('D')
+        self._write_to_file('''
+            @SP  // ARG = SP - (5 + nArgs)
+            D=M
+            @R15  // return to what called this subroutine
+            A=M
+            0;JMP
+        ''')
+
+    def _common_function_return_code(self):
+        """ Common assembly to return from a function
+            this code block saves program memory
+            any function that wants to return only has to
+            jump to @RETURN_FUNCTION
+            as it involves a return, it is already
+            will jump back to the RET_ADDR stored in stack
+        """
+        self._write_to_file('''
+            (RETURN_FUNCTION)  // common code for all returns
+            @LCL  // frame (stored in R15) = LCL
+            D=M
+            @R15
+            M=D
+            @5
+            A=D-A  // RET_ADDR = *(frame-5)
+            D=M
+            @R14
+            M=D
+        ''')
+        self.write_pop('D')
+        self._write_to_file('''
+            @ARG  // *arg = pop()
+            A=M
+            M=D
+            @ARG  // SP = ARG + 1
+            D=M+1
+            @SP
+            M=D
+            @R15  // THAT = *(frame-1)
+            M=M-1
+            A=M
+            D=M
+            @THAT
+            M=D
+            @R15  // THIS = *(frame-2)
+            M=M-1
+            A=M
+            D=M
+            @THIS
+            M=D
+            @R15  // ARG = *(frame-3)
+            M=M-1
+            A=M
+            D=M
+            @ARG
+            M=D
+            @R15  // LCL = *(frame-4)
+            M=M-1
+            A=M
+            D=M
+            @LCL
+            M=D
+            @R14  // get RET_ADDR from R14
+            A=M
+            0;JMP
+        ''')
 
     def close(self) -> None:
         """Suffix the asm code with an infinite loop trap and compare routine"""
+        # only need to write if no system init
         self._write_infinite_loop()
         self._write_true_subroutine()
+        self._common_function_call_code()
+        self._common_function_return_code()
         self.file.close()
 
     def _write_infinite_loop(self):
@@ -143,16 +245,16 @@ class CodeWriter:
         self.store_return_location(jump_label_name)
         self.write_pop('D')
         self._compare_op(jump, jump_label_name)
-        self.jump_index += 1    
+        self.jump_index += 1
 
     def store_return_location(self, jump_label: str) -> None:
         """Store the location of where to return to after
         a compare operation"""
         self._write_to_file(f'''
-                @{jump_label}
-                D=A
-                @R13
-                M=D
+            @{jump_label}
+            D=A
+            @R13
+            M=D
         ''')
 
     def write_arithmetic(self, command: str, debug_text: str) -> None:
@@ -228,7 +330,7 @@ class CodeWriter:
         self._write_to_file(f'// {debug_text}    {command} {segment} {index}')
 
     def put_seg(self, segment: str, index: int) -> None:
-        """put sets a vregister to D, exact process on the segment mode"""
+        """put sets a vregister to D, exact process depends on the segment mode"""
         if segment == 'local':
             self.put_pointer_offset('LCL', index)
         elif segment == 'argument':
@@ -379,8 +481,8 @@ class CodeWriter:
             D;JNE
         ''')
 
-    def write_function(self, name: str, number_variables: int, debug_text: str)\
-        -> None:
+    def write_function(self, name: str, number_variables: int, debug_text: str) \
+            -> None:
         """Initialised function with n local values"""
         self.write_comment('function', name, number_variables, debug_text)
         function_name = f'{name}'
@@ -388,14 +490,18 @@ class CodeWriter:
             ({function_name})
         ''')
         if number_variables > 0:
-            self._write_to_file('@0\nD=A')
+            self._write_to_file('''
+                @0
+                D=A
+            ''')
             for n in range(number_variables):
-                self.write_push('D')  # write n times '0' values to stack
+                # write n times '0' values to stack, could write a more optimised bulk write
+                self.write_push('D')
         self.parent_function_name = function_name
         self.call_index = 0
 
-    def write_call(self, name: str, number_arguments: int, debug_text: str)\
-        -> None:
+    def write_call(self, name: str, number_arguments: int, debug_text: str) \
+            -> None:
         """
             Pushes information of the caller to the stack:
             -6 <args n> <-- ARG (first arg)
@@ -412,46 +518,22 @@ class CodeWriter:
         self.write_comment(
             'call', function_label, number_arguments, debug_text)
         return_label = f'{self.parent_function_name}$ret.{self.call_index}'
+        common_code_label = f'{self.parent_function_name}$comret.{self.call_index}'
         self.call_index += 1
         self._write_to_file(f'''
-            @{return_label}  // push return address
+            @{common_code_label}  // store next block to return to
             D=A
-        ''')
-        self.write_push('D')
-
-        self._write_to_file('''
-            @LCL  // push LCL
-            D=M
-        ''')
-        self.write_push('D')
-
-        self._write_to_file('''
-            @ARG  // push ARG
-            D=M
-        ''')
-        self.write_push('D')
-
-        self._write_to_file('''
-            @THIS  // push THIS
-            D=M
-        ''')
-        self.write_push('D')
-
-        self._write_to_file('''
-            @THAT  // push THAT
-            D=M
-        ''')
-        self.write_push('D')
-
-        self._write_to_file(f'''
-            @SP  // ARG = SP - (5 + nArgs)
-            D=M
+            @R15
+            M=D
+            @{return_label}  // push return address, keep in D and call the common code block
+            D=A
+            @CALL_FUNCTION
+            0;JMP
+            ({common_code_label})
             @{5 + number_arguments}
             D=D-A
             @ARG
             M=D
-        ''')
-        self._write_to_file(f'''
             @SP  // LCL = SP
             D=M
             @LCL
@@ -476,64 +558,6 @@ class CodeWriter:
         self.write_comment(
             f'return from {self.parent_function_name}', '', '', debug_text)
         self._write_to_file('''
-            @LCL  // frame (stored in R15) = LCL
-            D=M
-            @R15
-            M=D
-        ''')
-        self._write_to_file('''
-            @5
-            A=D-A  // *(frame-5)
-            D=M
-            @R14
-            M=D
-        ''')
-        self.write_pop('D')
-        self._write_to_file('''
-            @ARG  // *arg = pop()
-            A=M
-            M=D
-        ''')
-        self._write_to_file('''
-            @ARG  // SP = ARG + 1
-            D=M+1
-            @SP
-            M=D
-        ''')
-        self._write_to_file('''
-            @R15  // THAT = *(frame-1)
-            M=M-1
-            A=M
-            D=M
-            @THAT
-            M=D
-        ''')
-        self._write_to_file('''
-            @R15  // THIS = *(frame-2)
-            M=M-1
-            A=M
-            D=M
-            @THIS
-            M=D
-        ''')
-        self._write_to_file('''
-            @R15  // ARG = *(frame-3)
-            M=M-1
-            A=M
-            D=M
-            @ARG
-            M=D
-        ''')
-        self._write_to_file('''
-            @R15  // LCL = *(frame-4)
-            M=M-1
-            A=M
-            D=M
-            @LCL
-            M=D
-        ''')
-        self._write_to_file('''
-            @R14  // get retAddr from R14
-            A=M
+            @RETURN_FUNCTION
             0;JMP
         ''')

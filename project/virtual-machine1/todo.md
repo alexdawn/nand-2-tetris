@@ -10,6 +10,17 @@
 * tetris
 * 
 
+## optimisations
+
+* subroutines primatives for blocks of code before jump back to current code
+(can save on common blocks of code of more than 4 lines, as costs that much to save and return):
+    * [x] call return
+    * [ ] put_pointer_offset
+    * [ ] comparision function
+    * [ ] some other arthimetic/logic
+* [ ] avoid push then pops
+* [ ] should local variables be set to zero allow garbage values?
+* [ ] bulk write local variables to common function sizes ?
 
 ## Fibonacci Element
 
