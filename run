@@ -1,96 +1,238 @@
 #!/bin/bash
 
+THISDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PRJDIR="$THISDIR/app"
+ENV="venv"
+
 set -euo pipefail
 
-echo "test fill"
-./tools/CPUEmulator.sh ./project-data/04-machine-language/fill/FillAutomatic.tst
-# echo "test mult"
-# ./tools/CPUEmulator.sh ./project-data/04-machine-language/mult/Mult.tst
+function build_help() {
+cat <<ENDHELP
+       build [cmd]
 
-echo "test add"
-./tools/Assembler.sh ./project-data/06-assembler/add/Add.asm
-mv .hack ./project-data/06-assembler/add/javaAdd.hack
-python project/assembler/assembler.py \
-    ./project-data/06-assembler/add/Add.asm \
-    -o ./project-data/06-assembler/add/Add.hack
-git diff --no-index ./project-data/06-assembler/add/Add.hack ./project-data/06-assembler/add/javaAdd.hack
-# ./tools/CPUEmulator.sh ./project-data/06-assembler/add/Add.tst
+       Build commands for "$THISDIR"
 
-echo "test max"
-./tools/Assembler.sh ./project-data/06-assembler/max/Max.asm
-mv .hack ./project-data/06-assembler/max/javaMax.hack
-python project/assembler/assembler.py \
-    ./project-data/06-assembler/max/Max.asm \
-    -o ./project-data/06-assembler/max/Max.hack
-git diff --no-index ./project-data/06-assembler/max/Max.hack ./project-data/06-assembler/max/javaMax.hack
+           setup        Check your enviroment has the right requirements
+           restore      Creates or updates your venv with your requirements.txt
+           build        Run static analyis (mypy) and linting
+           default      Setup, Restore, Build, citest
+           citest       Runs pytest to test the flask endpoints
+           dev          Runs a development flask server
+        After clone, run setup
+        After checkout or pull run restore
+        Before commit run default
 
-echo "test pong"
-./tools/Assembler.sh ./project-data/06-assembler/pong/Pong.asm
-mv .hack ./project-data/06-assembler/pong/javaPong.hack
-python project/assembler/assembler.py \
-    ./project-data/06-assembler/pong/Pong.asm \
-    -o ./project-data/06-assembler/pong/Pong.hack
-git diff --no-index ./project-data/06-assembler/pong/Pong.hack ./project-data/06-assembler/pong/javaPong.hack
+ENDHELP
+}
 
-echo "test rect"
-./tools/Assembler.sh ./project-data/06-assembler/rect/Rect.asm
-mv .hack ./project-data/06-assembler/rect/javaRect.hack
-python project/assembler/assembler.py \
-    ./project-data/06-assembler/rect/Rect.asm \
-    -o ./project-data/06-assembler/rect/Rect.hack
-git diff --no-index ./project-data/06-assembler/rect/Rect.hack ./project-data/06-assembler/rect/javaRect.hack
+function build_build() {
+    (
+        cd "$THISDIR"
+        flake8 "$PRJDIR" && echo "Passed Flake8"
+    )
+    mypy ./app/*.py ./app/**/*.py --config-file "$THISDIR/mypy.ini"
+}
 
-echo "test vm1/basicTest"
-python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.vm
-mv ./BasicTest.asm ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.asm
-./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.tst
+function build_citest() {
+    run_cmd seed
+     pytest -vv
+}
 
-echo "test vm1/PointerTest"
-python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.vm
-mv ./PointerTest.asm ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.asm
-./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.tst
+function build_restore() {
+    echo "Nothing to restore, pure python"
+    # if ! which python | grep -w "$ENV" > /dev/null ; then
+    #     python3 -m venv "$ENV"
+    # fi
+    # source "$ENV/bin/activate"
+    # pip install -r requirements.txt
+}
 
-echo "test vm1/StaticTest"
-python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.vm
-mv ./StaticTest.asm ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.asm
-./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.tst
+function run_cmd() {
+    local script=$1
+    shift
+    printf '==== %-10s    ====\n' "$script"
+    "build_$script" "$@"
+}
 
-echo "test vm1/SimpleAdd"
-python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.vm
-mv ./SimpleAdd.asm ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.asm
-./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.tst
+function build_default() {
+    run_cmd setup
+    run_cmd restore
+    run_cmd build
+    run_cmd citest
+}
 
-echo "test vm1/StackTest"
-python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.vm
-mv ./StackTest.asm ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.asm
-./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.tst
+function build_setup() {
+    command virtualenv --version > /dev/null || { echo "Missing virtualenv - you need to install it." ; exit 1 ; }
+    command pip --version > /dev/null || { echo "Missing pip - you need to install it." ; exit 2 ; }
+}
 
-echo "test vm2/NestedCall"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/NestedCall
-mv ./NestedCall.asm ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.tst
+function build_dev() {
+    echo "nothing to run"
+    # python ./run.py
+}
 
-echo "test vm2/SimpleFunction"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/SimpleFunction
-mv ./SimpleFunction.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.tst
+text="TESTING\n"
+tests=0
+fails=0
 
-echo "test vm2/StaticsTest"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/StaticsTest
-mv ./StaticsTest.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/StaticsTest.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/StaticsTest/StaticsTest.tst
+function success {
+  echo -n "."
+  tests=$((tests+1))
+  text+="\nPASS\n"
+}
 
-echo "test vm2/BasicLoop"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/BasicLoop
-mv ./BasicLoop.asm ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.tst
+function fail {
+  echo -n "x"
+  tests=$((tests+1))
+  fails=$((fails+1))
+  text+="\nFAIL\n"
+}
 
-echo "test vm2/FibonacciSeries"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/FibonacciSeries
-mv ./FibonacciSeries.asm ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.tst
+function build_online {
+    # needs more config to handle calling main.main or
+    # way to compile with the sys libraries
+    # "mush-os"
+    array=( \
+        "dino/Dino" \
+        "from-nand-to-donut" \
+        "from-nand-to-raytracer/jack-raytracer" \
+        "hackenstein3D/dist" \
+        "Nand2Tetris-Games_and_Demos/GASboing" \
+        "Nand2Tetris-Games_and_Demos/GASchunky" \
+        "Nand2Tetris-Games_and_Demos/GASscroller" \
+        "SpaceInvaders" \
+        "turtle/Schooling/n2t/09/Turtle" \
+    )
+    for i in "${array[@]}" ; do
+        build_full "./online/$i"
+    done
+}
 
-echo "test vm2/FibonacciElement"
-python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/FibonacciElement
-mv ./FibonacciElement.asm ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.asm
-./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.tst
+function build_full {
+    build_compile "$@"
+    build_assemble "$@"
+}
+
+function build_assemble {
+    file=$(find $1 -type f -name '*.asm')
+    python project/assembler/assembler.py "$file" -v -o "$1/main.hack"
+}
+
+function build_compile {
+    # ./tools/JackCompiler.sh "$1"
+    python project/virtual-machine1/vm-code-writer.py --bootstrap "$1"
+    mv *.asm "$1"
+}
+
+function test_subshell {
+    text+="\n=== $1 ===\n\n"
+    shift || true
+    text+=$(( bash -c "$1" ) 2>&1) && success || fail
+}
+
+function build_test {
+    test_subshell "assembley test fill" \
+        "./tools/CPUEmulator.sh \
+        ./project-data/04-machine-language/fill/FillAutomatic.tst;"
+
+    # echo "test mult" commented out as tst is not working for asm, and a handwritten asm which won't change has little to test
+    # ./tools/CPUEmulator.sh ./project-data/04-machine-language/mult/Mult.tst
+
+    test_subshell "assembler test add" \
+        "./tools/Assembler.sh ./project-data/06-assembler/add/Add.asm;
+        mv .hack ./project-data/06-assembler/add/javaAdd.hack;
+        python project/assembler/assembler.py \
+            ./project-data/06-assembler/add/Add.asm \
+            -o ./project-data/06-assembler/add/Add.hack;
+        git diff --no-index ./project-data/06-assembler/add/Add.hack ./project-data/06-assembler/add/javaAdd.hack;"
+        # ./tools/CPUEmulator.sh ./project-data/06-assembler/add/Add.tst
+
+    # assmebley tests
+    test_subshell "assembler test max" \
+        "./tools/Assembler.sh ./project-data/06-assembler/max/Max.asm;
+        mv .hack ./project-data/06-assembler/max/javaMax.hack;
+        python project/assembler/assembler.py \
+            ./project-data/06-assembler/max/Max.asm \
+            -o ./project-data/06-assembler/max/Max.hack;
+        git diff --no-index ./project-data/06-assembler/max/Max.hack ./project-data/06-assembler/max/javaMax.hack;"
+    
+    test_subshell "assembler test pong" \
+        "./tools/Assembler.sh ./project-data/06-assembler/pong/Pong.asm;
+        mv .hack ./project-data/06-assembler/pong/javaPong.hack;
+        python project/assembler/assembler.py \
+            ./project-data/06-assembler/pong/Pong.asm \
+            -o ./project-data/06-assembler/pong/Pong.hack;
+        git diff --no-index ./project-data/06-assembler/pong/Pong.hack ./project-data/06-assembler/pong/javaPong.hack;"
+   
+    test_subshell "assembler test rect" \
+        "./tools/Assembler.sh ./project-data/06-assembler/rect/Rect.asm;
+        mv .hack ./project-data/06-assembler/rect/javaRect.hack;
+        python project/assembler/assembler.py \
+            ./project-data/06-assembler/rect/Rect.asm \
+            -o ./project-data/06-assembler/rect/Rect.hack;
+        git diff --no-index ./project-data/06-assembler/rect/Rect.hack ./project-data/06-assembler/rect/javaRect.hack;"
+    
+    # vm tests
+    test_subshell "vm1 test basicTest" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.vm;
+        mv ./BasicTest.asm ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.asm;
+        ./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/BasicTest/BasicTest.tst;"
+
+    test_subshell "vm1 test PointerTest" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.vm;
+        mv ./PointerTest.asm ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.asm;
+        ./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/PointerTest/PointerTest.tst;"
+
+    test_subshell "vm1 test StaticTest" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.vm;
+        mv ./StaticTest.asm ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.asm;
+        ./tools/CPUEmulator.sh ./project-data/07-vm1/MemoryAccess/StaticTest/StaticTest.tst;"
+
+    test_subshell "vm1 test SimpleAdd" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.vm;
+        mv ./SimpleAdd.asm ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.asm;
+        ./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/SimpleAdd/SimpleAdd.tst;"
+
+    test_subshell "vm1 test StackTest" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.vm;
+        mv ./StackTest.asm ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.asm;
+        ./tools/CPUEmulator.sh ./project-data/07-vm1/StackArithmetic/StackTest/StackTest.tst;"
+
+    test_subshell "vm2 test NestedCall" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/NestedCall;
+        mv ./NestedCall.asm ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/NestedCall/NestedCall.tst;"
+
+    test_subshell "vm2 test SimpleFunction" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/SimpleFunction;
+        mv ./SimpleFunction.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/SimpleFunction/SimpleFunction.tst;"
+
+    test_subshell "vm2 test StaticsTest" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/StaticsTest;
+        mv ./StaticsTest.asm ./project-data/08-vm2/FunctionCalls/SimpleFunction/StaticsTest.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/StaticsTest/StaticsTest.tst;"
+
+    test_subshell "vm2 test BasicLoop" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/BasicLoop;
+        mv ./BasicLoop.asm ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/BasicLoop/BasicLoop.tst;"
+
+    test_subshell "vm2 test FibonacciSeries" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/ProgramFlow/FibonacciSeries;
+        mv ./FibonacciSeries.asm ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/ProgramFlow/FibonacciSeries/FibonacciSeries.tst;"
+
+    test_subshell "vm2 test FibonacciElement" \
+        "python project/virtual-machine1/vm-code-writer.py ./project-data/08-vm2/FunctionCalls/FibonacciElement;
+        mv ./FibonacciElement.asm ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.asm;
+        ./tools/CPUEmulator.sh ./project-data/08-vm2/FunctionCalls/FibonacciElement/FibonacciElement.tst;"
+
+    echo -e "\n$text"
+    echo -e "\n\nFinished $tests tests, $fails have failed\n"
+
+}
+
+cmd="${1:-default}"
+shift || true
+"build_$cmd" "$@"
