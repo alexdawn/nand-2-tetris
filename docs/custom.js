@@ -45,9 +45,10 @@ Module.onRuntimeInitialized = async () => {
 }
 
 // mobile needs an input focus to bring up keyboard
-function showKeyboard()
+function showKeyboard(event)
 {
     document.getElementById("show-mobile-keyboard").focus();
+    document.getElementById("show-mobile-keyboard").click();
 }
 
 function pressStep() {
@@ -76,20 +77,20 @@ function refresh() {
     ctx.putImageData(img, 0, 0, 0, 0, 512, 256);
 }
 
-function pressPlayPause() {
+function pressPlayPause(event) {
     console.log("toggle play");
-    isPlaying ? pressStop() : pressPlay();
+    isPlaying ? pressStop(event) : pressPlay(event);
 }
 
-function pressPlay() {
+function pressPlay(event) {
     document.getElementById("play").setAttribute("class", "fa fa-pause");
     document.getElementById("play-text").innerText = "Pause";
     timer = setInterval(pressSteps, triggerInterval);
     isPlaying = true;
-    showKeyboard();
+    showKeyboard(event);
 }
 
-function pressStop() {
+function pressStop(event) {
     document.getElementById("play").setAttribute("class", "fa fa-play");
     document.getElementById("play-text").innerText = "Play";
     clearInterval(timer); 
