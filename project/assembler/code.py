@@ -1,4 +1,5 @@
 def dest(symbol: str) -> str:
+    """This part can contain zero or more registers to copy the result to"""
     code = 0
     if symbol:
         if 'M' in symbol:
@@ -11,6 +12,7 @@ def dest(symbol: str) -> str:
 
 
 def comp(symbol: str) -> str:
+    """big old lookup table to convert comparison part to code, symmetric ops appear twice"""
     lookup_table = {
         '0':   '0101010',
         '1':   '0111111',
@@ -54,6 +56,7 @@ def comp(symbol: str) -> str:
 
 
 def jump(symbol: str) -> str:
+    """lookup for the jump prefix"""
     lookup_table = {
         None:   '000',
         'JGT':  '001',

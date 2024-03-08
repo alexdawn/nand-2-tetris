@@ -1,5 +1,6 @@
 from enum import Enum
-from io import FileIO, SEEK_CUR
+from io import FileIO
+from typing import Tuple
 
 
 class TokenType(Enum):
@@ -8,6 +9,7 @@ class TokenType(Enum):
     IDENTIFIER = 3
     INTEGER_CONSTANT = 4
     STRING_CONSTANT = 5
+    COMMENT = 6
 
 
 class Keyword(Enum):
@@ -59,31 +61,37 @@ class JackTokenizer:
         self.input_file.seek(self.input_file.tell() - 1)
         return char != ''
 
-    def advance(self) -> None:
+    def advance(self) -> Tuple[TokenType, str]:
         self.char = ' '
         while self.char in whitespace:
             self.char = self.input_file.read(1)
         self.current_token = self.char
-        while self.char not in whitespace and self.token_type() and self.char != '':
+        while (self.char not in whitespace or self.token_type() in (TokenType.STRING_CONSTANT, TokenType.COMMENT)) and self.token_type() and self.char != '':
             self.char = self.input_file.read(1)
             self.current_token += self.char
         if self.char != '':
             self.input_file.seek(self.input_file.tell() - 1)
             self.current_token = self.current_token[0:-1]
-        print(self.token_type(), self.current_token)
+        if self.token_type() == TokenType.COMMENT:  # ignore comments
+            self.advance()
+        return self.token_type(), self.current_token
 
     def token_type(self) -> TokenType:
         if len(self.current_token) >= 1:
-            if self.current_token[0] in symbols:
+            if self.current_token in symbols:
                 return TokenType.SYMBOL
             elif self.current_token.lower() in keywords:
                 return TokenType.KEYWORD
-            elif self.current_token[0] == '"' and self.current_token[-1] == '"':
+            elif self.current_token[0] == '"' and (self.current_token[-2] != '"' if len(self.current_token) > 2 else True): # keep building string until non string, fix empty strings
                 return TokenType.STRING_CONSTANT
             elif self.current_token[0] not in digits and all(char in valid_identifiers for char in self.current_token):
                 return TokenType.IDENTIFIER
             elif all(char in digits for char in self.current_token):
                 return TokenType.INTEGER_CONSTANT
+            elif self.current_token[:2] == '//' and (self.current_token[-2] != '\n' if len(self.current_token) > 2 else True):
+                return TokenType.COMMENT
+            elif self.current_token[:2] == '/*' and (self.current_token[-3: -1] != '*/' if len(self.current_token) > 4 else True): # no nested comment support
+                return TokenType.COMMENT
         return None
 
     def keyword(self) -> Keyword:
@@ -107,9 +115,3 @@ class JackTokenizer:
     def string_value(self) -> str:
         assert self.token_type() == TokenType.STRING_CONSTANT
         return self.current_token[1:-1]
-
-
-if __name__ == '__main__':
-    t = JackTokenizer(open('test.txt', 'r'))
-    while t.has_more_tokens():
-        t.advance()

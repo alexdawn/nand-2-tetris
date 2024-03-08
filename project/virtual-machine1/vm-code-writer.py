@@ -70,4 +70,5 @@ if __name__ == '__main__':
                         cw.write_return(parser.get_debug_info())
                     else:
                         raise RuntimeError(f"Unknown Instruction type {parser.current_instruction}")
-    cw.close()
+    if cw is not None:
+        cw.close()

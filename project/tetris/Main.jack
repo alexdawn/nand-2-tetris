@@ -1,0 +1,288 @@
+// WIP jack tetris
+
+class Main {
+   function void main() {
+      var int nScreenWidth = 64;
+      var int nScreenHeight = 23;
+      var Array tetromino = Array.new(7);
+      var int nFieldWidth = 12;
+      var int nFieldHeight = 18;
+      var String pField = String.new(nFieldWidth * nFieldHeight);
+
+      var String screen = String.new(nScreenWidth * nScreenHeight);
+      var int i = 0;
+      while (i < (nScreenWidth * nScreenHeight)) {
+         screen.appendChar();  // TODO get int value of " "
+         let i = i + 1;
+      }
+      let tetromino[0] = 0b0010001000100010; // TODO get decimal versions
+      let tetromino[1] = 0b0010011000100000;
+      let tetromino[2] = 0b0000011001100000;
+      let tetromino[3] = 0b0010011001000000;
+      let tetromino[4] = 0b0100011000100000;
+      let tetromino[5] = 0b0100010001100000;
+      let tetromino[6] = 0b0010001001100000;
+
+      // draw border
+      var int x = 0;
+      var int y = 0;
+      while (x < nFieldWidth) {
+         while (y < nFieldHeight) {
+            if ((x = 0) | (x = nFieldWidth) | (y = (nFieldHeight - 1))) {
+               do pField.setCharAt((y * nFieldWidth) + x, "#"); // just set there symbol
+            } else {
+               do pField.setCharAt((y * nFieldWidth) + x, " "); // TODO fix with char int
+            }
+            let y = y + 1;
+         }
+         let x = x + 1;
+      }
+
+      // game logic
+      var char key;
+      var int nCurrentPiece = 0;
+      var int nCurrentRotation = 0;
+      var int nCurrentX = nFieldWidth / 2;
+      var int nCUrrentY = 0;
+      var int nSpeed = 20;
+      var int nSpeedCount = 0;
+      var boolean bForceDown = false;
+      var boolean bRotateHold = true;
+      var int nPieceCount = 0;
+      var int nScore = 0;
+      var int vLines = 0; // todo understand original Vector type
+      var boolean bGameOver = false;
+
+      while (~bGameOver) {
+         // timing ======================================
+         do Sys.wait(50);
+         let nSpeedCount = nSpeedCount + 1;
+         let bForceDown = (nSpeedCount >= nSpeed);
+         // input =======================================
+         let key = Keyboard.keyPressed();
+         // game logic ==================================
+         // left
+         if (key = 130 & DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX + 1, nCurrentY)) {
+            let nCurrentX = nCurrentX + 1;
+         }
+         // right
+         if (key = 132 & DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX - 1, nCurrentY)) {
+            let nCurrentX = nCurrentX - 1;
+         }
+         // down
+         if (key = 133 & DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY + 1)) {
+            let nCurrentY = nCurrentX + 1;
+         }
+
+         // rotate
+         if (key = 'r') {  // todo get r value
+            if (bRotateHold & DoesPieceFit(nCurrentPiece, nCurrentRotation + 1, nCurrentX, nCurrentY)) {
+               let nCurrentRotation = nCurrentRotation + 1;
+            }
+            let bRotateHold = false;
+         } else {
+            let bRotateHold = true;
+         }
+
+         if (bForceDown) {
+            // update difficulty every 64 pieces
+            let nSpeedCount = 0;
+            let nPieceCount = nPieceCount + 1;
+            if ((nPieceCount & 64) = 0) {
+                if (nSpeed >= 10) {
+                  let nSpeed = nSpeed - 1;
+                }
+            }
+
+            // test if piece can be moved down
+            if (DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY + 1)) {
+               let nCurrentY = nCurrentY + 1;
+            } else {
+               // lock piece in place
+               var int px = 0;
+               while (px < 4) {
+                  var int py = 0;
+                  while(py < 4) {
+                     if (tetromino[nCurrentPiece] & GetMask(Rotate(px, py, nCurrentRotation)) != 0) {
+                        pField[(nCurrentY + py) * nFieldWidth + (nCurrentX + px)] = nCurrentPiece + 1;
+                     }
+                     let py = py + 1;
+                  }
+                  let px = px + 1;
+               }
+
+               // check for lines
+               var int py = 0;
+               while (py < 4) {
+                  if ((nCurrentY + py) < (nFieldHeight - 1)) {
+                     var boolean bLine = true;
+                     var int px = 1;
+                     while (px < (nFieldWidth - 1)) {
+                        let bLine = bLine & (pField[((nCurrentY + py) * nFieldWidth) + px] != 0);
+                        let px = px + 1;
+                     }
+                     if (bLine) {
+                        // remove line set to =
+                        var int px = 1;
+                        while (px < (nFieldWidth - 1)) {
+                           let pField[((nCurrentY + py) * nFieldWidth) + px] = '=';
+                           let px = px + 1;
+                        }
+                        let vLines = nCurrentY + py;
+                     }
+                  }
+                  let py = py + 1;
+               }
+
+               let nScore = nScore + 25;
+               if (vLines != 0) {
+                  let nScore = nScore + GetMask(vLines) * 100;
+               }
+
+               // pick new piece
+               let nCurrentX = nFieldWidth / 2;
+               let nCurrentY = 0;
+               let nCurrentRotation = 0;
+               // todo find pseudo random function
+               // lacking true modulo
+               let nCurrentPiece = (nCurrentPiece + 1) & 7
+
+               // if new piece does not fit game over
+               let bGameOver = ~DoesPieceFit(nCurrentPiece, nCurrentRotation, nCurrentX, nCurrentY);
+            }
+         }
+
+         // display ============================
+
+         // draw field
+         var string ICONS = "ABCDEFG=#";
+         var int x = 0;
+         while (x < nFieldWidth) {
+            var int y = 0;
+            while (y < nFieldHeight) {
+               let screen[(y + 2) * nScreenWidth + (x + 2)] =
+                  ICONS.charAt(pField[(y * nFieldWidth) + x]);
+               let y = y + 1;
+            }
+            let x = x + 1;
+         }
+
+         // draw current piece
+         var int px = 0;
+         while (px < 4) {
+            var int py = 0;
+            while (py < 4) {
+               if ((tetromino[nCurrentPiece]) & GetMask(Rotate(px, py, nCurrentRotation)) != 0) {
+                  let screen[(nCurrentY + py + 2) * nScreenWidth + (nCurrentX + px + 2)] = nCurrentPiece + 65;
+               }
+               let py = py + 1;
+            }
+            let px = px + 1;
+         }
+
+         // draw score
+         do Output.moveCursor(0, 0);
+         do Output.printScreen("SCORE: ");
+         do Output.printInt(nScore);
+
+         // animate line complete
+         if (vLines > 0) {
+            DisplayScreen(screen);
+            do Sys.wait(400);
+
+            var int v = vLines; // todo check clearing in right direction
+            while (v != 0) {
+               var int px = 1;
+               while (px < (nFieldWidth - 1)) {
+                  var int py = v;
+                  while (py > 0) {
+                     pField[(py * nFieldWidth) + px] =
+                        pField[((py - 1) * nFieldWidth) + px];
+                     let py = py - 1;
+                  }
+                  pField[px] = 0;
+                  let px = px + 1;
+               }
+               let v = v - 1;
+            }
+            let vLines = 0;
+         }
+
+         // display frame
+         DisplayScreen(screen);
+      }
+
+      // game over
+      do Output.moveCursor(12, 32);
+      do Output.printString("Game Over!! Score: ");
+      do Output.printInt(nScore);
+      do Sys.halt();
+   }
+
+   function void DisplayScreen(string screen) {
+      do Output.printString(screen);
+   }
+
+   function int GetMask(int index) {
+      var Array masks = Array.new(16);
+      let masks[0] = 1;
+      let masks[1] = 2;
+      let masks[2] = 4;
+      let masks[3] = 8;
+      let masks[4] = 16;
+      let masks[5] = 32;
+      let masks[6] = 64;
+      let masks[7] = 128;
+      let masks[8] = 256;
+      let masks[9] = 512;
+      let masks[10] = 1024;
+      let masks[11] = 2048;
+      let masks[12] = 4096;
+      let masks[13] = 8192;
+      let masks[14] = 16384;
+      let masks[15] = 32768;
+      return masks[index];
+   }
+
+   function int Rotate(int px, int py, int r) {
+      var int pi = 0;
+      let r = r & 3 
+      if (r == 0) {
+         return pi = (py * 4) + px;
+      }
+      if (r == 1) {
+         return pi = 12 + py - (px * 4);
+      }
+      if (r == 2) {
+         return pi = 15 - (py * 4) - px;
+      }
+      if (r == 3) {
+         return pi = 3 - py + (px * 4);
+      }
+      return pi;
+   }
+
+   function boolean DoesPieceFit(int nTetromino, int nRotation, int nPosX, int nPosY) {
+      var int px = 0;
+      var int py = 0;
+      var int pi;
+      var int fi;
+      while (px < 4) {
+         let py = 0;
+         while (py < 4) {
+            let pi = Rotate(px, py, nRotation);
+            let fi = (nPosY + py) * nFieldWidth + (nPosX + px);
+            if ((nPosX + px) >= 0 & nPosX + px < nFieldWidth) {
+               if (nPosY + py >= 0 & nPosY + py < nFieldHeight) {
+                  if (((tetromino[nTetromino] & GetMask(pi)) = 1) & ~(pField[fi] = 0)) {
+                     return false;
+                  }
+               }
+            }
+            let py = py + 1;
+         }
+         let px = px + 1;
+      }
+      return true;
+   }
+}

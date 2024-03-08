@@ -1,1 +1,8 @@
-let x = 1;
+// example code to test lexer
+
+class Main {
+    function void main() {
+        do Output.printString("Hello, world!");
+    }
+}
+
