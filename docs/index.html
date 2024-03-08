@@ -57,7 +57,8 @@
         <i class="fa fa-forward-step"></i> Step
     </button>
     <button onclick="pressPlayPause()" class="w3-button w3-light-grey w3-padding-large w3-section">
-        <i id="play" class="fa fa-play"></i> Play
+        <i id="play" class="fa fa-play"></i> 
+        <span id="play-text">Play</span>
     </button>
     <button onclick="pressReset()" class="w3-button w3-light-grey w3-padding-large w3-section">
         <i class="fa fa-power-off"></i> Reset
@@ -74,6 +75,8 @@
     <div>
         <canvas id="canvas" width="512" height="256"></canvas>
     </div>
+    <!-- hidden input for showing mobile keyboard -->
+    <input type="text" id="show-mobile-keyboard" style="display:none">
     <h3>Program</h3>
     <div class="editor">
         <div class="line-numbers">

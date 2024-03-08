@@ -22,6 +22,7 @@ canvas.style.height = (256 * scale).toString() + 'px';
 const ctx = canvas.getContext("2d");
 
 Module.onRuntimeInitialized = async () => {
+    console.log("runtime initialized");
     steps = Module.cwrap("steps", null, ["number"]);
     step = Module.cwrap("step", "number", null);
     get_ram = Module.cwrap("get_ram", "number", null);
@@ -40,15 +41,24 @@ Module.onRuntimeInitialized = async () => {
     setRom(loadServerRom(location.origin + baseUrl + 'bin/Pong.hack'));
     const inputElement = document.getElementById("myFile");
     inputElement.addEventListener("change", uploadRom, false);
+    console.log("initialized complete");
+}
+
+// mobile needs an input focus to bring up keyboard
+function showKeyboard()
+{
+    document.getElementById("show-mobile-keyboard").focus();
 }
 
 function pressStep() {
+    console.log("step");
     step();
     ticks++;
     refresh();
 }
 
 function pressSteps() {
+    console.log("steps");
     clocksTicks = Number(document.getElementById("ticks").value);
     steps(clocksTicks);
     ticks += clocksTicks;
@@ -67,30 +77,34 @@ function refresh() {
 }
 
 function pressPlayPause() {
+    console.log("toggle play");
     isPlaying ? pressStop() : pressPlay();
 }
 
 function pressPlay() {
     document.getElementById("play").setAttribute("class", "fa fa-pause");
-    document.getElementById("play").innerText = "Pause";
+    document.getElementById("play-text").innerText = "Pause";
     timer = setInterval(pressSteps, triggerInterval);
     isPlaying = true;
+    showKeyboard();
 }
 
 function pressStop() {
     document.getElementById("play").setAttribute("class", "fa fa-play");
-    document.getElementById("play").innerText = "Play";
+    document.getElementById("play-text").innerText = "Play";
     clearInterval(timer); 
     isPlaying = false;
 }
 
 function pressReset() {
+    console.log("press reset");
     ticks = 0;
     reset();
     refresh();
 }
 
 function pressResize() {
+    console.log("press resize");
     var canvas = document.getElementById("canvas");
     if (canvas.requestFullScreen)
         canvas.requestFullScreen();
@@ -101,6 +115,7 @@ function pressResize() {
 }
 
 function loadServerRom(filePath) {
+    console.log(`loading ${filePath}`);
     var result = null;
     var xmlhttp = new XMLHttpRequest();
     xmlhttp.open("GET", filePath, false);
@@ -124,10 +139,12 @@ function uploadRom() {
     const file = inputElement.files[0];
     const reader = new FileReader();
     reader.readAsText(file);
+    console.log("loading rom");
     reader.addEventListener("load", () => {
         const content = document.querySelector('.rom');
         content.innerText = reader.result;
         setRom(reader.result);
+        console.log("rom loaded");
     }, false);
 }
 

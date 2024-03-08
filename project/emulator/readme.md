@@ -7,7 +7,8 @@ emulator into C code while the GUI elements remains in python.
 
 ## wasm
 
-
+Alternative compile target so can be read in the web.
+Uses the emscripten/emsdk docker container to compile C to WASM
 
 ## Todos
 
