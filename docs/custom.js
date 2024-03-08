@@ -47,6 +47,7 @@ Module.onRuntimeInitialized = async () => {
 // mobile needs an input focus to bring up keyboard
 function showKeyboard(event)
 {
+    console.log("show mobile keyboard");
     document.getElementById("show-mobile-keyboard").focus();
     document.getElementById("show-mobile-keyboard").click();
 }
