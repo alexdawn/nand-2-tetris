@@ -30,15 +30,18 @@ Module.onRuntimeInitialized = async () => {
     get_screen = Module.cwrap("get_screen", "number", null);
     keyboard_to_ram = Module.cwrap("keyboard_to_ram", null, ["number"]);
     get_pc = Module.cwrap("get_pc", "number", null);
+    get_page = Module.cwrap("get_page", "number", null);
     reset = Module.cwrap("reset", null, null);
 
     ram = new Int16Array(Module.HEAP16.buffer, get_ram(), 32768);
     rom = new Uint16Array(Module.HEAP16.buffer, get_rom(), 65536);
     screen = new Uint8ClampedArray(Module.HEAP8.buffer, get_screen(), 512 * 256 * 4);
-    screen.set(new Array(512 * 256).fill([0,0,0,255]).flat(), 0);
+    screen.set(new Array(512 * 256).fill([0, 0 ,0 ,255]).flat(), 0);
 
     const baseUrl = location.pathname.substring(0, location.pathname.lastIndexOf("/") + 1)
-    setRom(loadServerRom(location.origin + baseUrl + 'bin/Pong.hack'));
+    if (location.origin) {
+        setRom(loadServerRom(location.origin + baseUrl + 'bin/Pong.hack'));
+    }
     const inputElement = document.getElementById("myFile");
     inputElement.addEventListener("change", uploadRom, false);
     console.log("initialized complete");
@@ -70,6 +73,7 @@ function pressSteps() {
 function refresh() {
     document.querySelector('.time').innerText = (clocksTicks / ((time - lastTime) / 1_000) / 1_000_000)
         .toFixed(2) + ' Mhz';
+    document.querySelector('.page').innerText =  'Page: ' + get_page();
     document.querySelector('.pc').innerText =  'PC: ' + get_pc();
     document.querySelector('.ticks').innerText =  'ticks: ' + ticks;
     lastTime = time;
@@ -137,14 +141,17 @@ function setRom(program) {
 }
 
 function uploadRom() {
+    console.log("request file upload");
     const inputElement = document.getElementById("myFile");
     const file = inputElement.files[0];
+    console.log(`file uploaded is ${file}`);
     const reader = new FileReader();
     reader.readAsText(file);
     console.log("loading rom");
     reader.addEventListener("load", () => {
         const content = document.querySelector('.rom');
-        content.innerText = reader.result;
+        // large programs could be slow need better option
+        // content.innerText = reader.result;
         setRom(reader.result);
         console.log("rom loaded");
     }, false);

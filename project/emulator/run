@@ -1,4 +1,5 @@
 docker run --rm -v $(pwd):/src -u $(id -u):$(id -g) \
-  emscripten/emsdk emcc emulator.c -o helloworld.js \
-  -s WASM=1 -s EXPORTED_FUNCTIONS='["_step", "_steps", "_keyboard_to_ram", "_ram_to_screen", "_get_ram", "_get_rom", "_get_screen", "_get_pc", "_reset"]' \
-  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap"]'
+  emscripten/emsdk emcc emulator.c -o emulator.js \
+  -s WASM=1 -s EXPORTED_FUNCTIONS='["_step", "_steps", "_keyboard_to_ram", "_ram_to_screen", "_get_ram", "_get_rom", "_get_screen", "_get_pc", "_get_page", "_reset"]' \
+  -s EXTRA_EXPORTED_RUNTIME_METHODS='["cwrap"]' \
+  -s TOTAL_MEMORY=22675456

@@ -46,7 +46,7 @@ if __name__ == '__main__':
             with open(filepath) as file:
                 cw.set_file_name(file.name)
                 parser = Parser(file)
-                while(parser.has_more_lines()):
+                while (parser.has_more_lines()):
                     parser.advance()
                     command = parser.command_type()
                     if command == InstructionType.C_ARITHMETIC:
